@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Kamera - Neues Memory-Album erstellen">
+    <title>Kamera - Memories</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="camera-page">
+    <div class="camera-container">
+        <video id="video" class="camera-video" autoplay playsinline></video>
+        <canvas id="canvas" class="camera-canvas"></canvas>
+        <div class="camera-overlay">
+            <div class="square-frame"></div>
+        </div>
+        
+        <div class="camera-controls">
+            <button class="camera-capture-btn" id="captureBtn" aria-label="Foto aufnehmen">
+                <span class="capture-icon"></span>
+            </button>
+        </div>
+        
+        <a href="index.html" class="back-button" aria-label="Zurück zur Startseite">
+            <span class="back-icon">←</span>
+        </a>
+        
+        <button class="confirm-button" id="confirmBtn" aria-label="Bestätigen">
+            <span class="confirm-icon">✓</span>
+        </button>
+        
+        <div class="photo-stack-container">
+            <div class="photo-counter" id="photoCounter">0</div>
+            <div class="photo-stack" id="photoStack"></div>
+        </div>
+    </div>
+    
+    <script src="camera.js"></script>
+</body>
+</html>
+

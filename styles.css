@@ -1,0 +1,1111 @@
+/* Farbpalette - Helles Theme */
+:root {
+    /* Primärfarben */
+    --primary-color: #4A90E2;
+    --primary-hover: #357ABD;
+    --primary-light: #E8F4FD;
+    
+    /* Sekundärfarben */
+    --secondary-color: #7B8A9B;
+    --secondary-light: #F0F2F5;
+    
+    /* Textfarben */
+    --primary-text-color: #2C3E50;
+    --secondary-text-color: #6C757D;
+    --text-light: #FFFFFF;
+    
+    /* Hintergrundfarben */
+    --bg-primary: #FFFFFF;
+    --bg-secondary: #F8F9FA;
+    --bg-accent: #F1F3F5;
+    
+    /* Border/Outline */
+    --border-color: #DEE2E6;
+    --border-light: #E9ECEF;
+    
+    /* Statusfarben */
+    --success-color: #28A745;
+    --warning-color: #FFC107;
+    --error-color: #DC3545;
+    --info-color: #17A2B8;
+    
+    /* Schatten */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Reset und Basis-Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--primary-text-color);
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow: hidden; /* Verhindert Scrollen der ganzen Seite */
+}
+
+/* Container für zentrierten Inhalt */
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Zentrierter Hauptinhalt */
+.main-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+    padding: 24px;
+    padding-bottom: 100px; /* Platz für FAB Button */
+    overflow: hidden; /* Verhindert Scrollen der ganzen Seite */
+    box-sizing: border-box;
+    background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+}
+
+/* Alben Container - Responsives Grid */
+.albums-container {
+    display: none;
+    grid-template-columns: repeat(auto-fill, minmax(min(180px, 100%), 1fr));
+    width: 100%;
+    max-width: 1400px;
+    margin-top: 24px;
+    padding: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1;
+    min-height: 0;
+    max-height: 100%;
+    -webkit-overflow-scrolling: touch;
+    gap: 20px;
+    align-content: start;
+    align-items: start;
+    grid-auto-rows: min-content;
+}
+
+.albums-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.albums-container::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+    border-radius: 4px;
+}
+
+.albums-container::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+.albums-container::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary-color);
+}
+
+/* Album Karte */
+.album-card {
+    position: relative;
+    aspect-ratio: 1;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 100%;
+    min-height: 0;
+    height: auto;
+}
+
+.album-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    border-color: var(--primary-light);
+}
+
+.album-preview {
+    width: 100%;
+    height: 75%;
+    object-fit: cover;
+    background: linear-gradient(135deg, var(--bg-accent) 0%, var(--bg-secondary) 100%);
+    border-radius: 16px 16px 0 0;
+    transition: transform 0.3s ease;
+}
+
+.album-card:hover .album-preview {
+    transform: scale(1.05);
+}
+
+.album-info {
+    padding: 16px;
+    height: 25%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: var(--bg-primary);
+    position: relative;
+    overflow: visible;
+}
+
+.album-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 0;
+}
+
+.album-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--primary-text-color);
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    letter-spacing: -0.01em;
+}
+
+.album-options-btn {
+    background: none;
+    border: none;
+    color: var(--secondary-text-color);
+    font-size: 1.5rem;
+    line-height: 1;
+    padding: 4px 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+}
+
+.album-options-btn:hover {
+    background-color: var(--bg-accent);
+    color: var(--primary-text-color);
+}
+
+.album-options-menu {
+    position: absolute;
+    bottom: 100%;
+    right: 8px;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: var(--shadow-lg);
+    min-width: 140px;
+    z-index: 100;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+
+.album-options-menu.active {
+    display: flex;
+}
+
+.option-item {
+    padding: 12px 16px;
+    background: none;
+    border: none;
+    text-align: left;
+    color: var(--primary-text-color);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.option-item:hover {
+    background-color: var(--bg-secondary);
+}
+
+.option-item-danger {
+    color: var(--error-color);
+}
+
+.option-item-danger:hover {
+    background-color: rgba(220, 53, 69, 0.1);
+}
+
+.album-location {
+    font-size: 0.8125rem;
+    color: var(--secondary-text-color);
+    margin: 0;
+    margin-top: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+    font-weight: 400;
+}
+
+/* Keine Alben Nachricht */
+.no-albums {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    text-align: center;
+}
+
+/* Überschrift "Memories" */
+.main-heading {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--primary-text-color);
+    margin-bottom: 1rem;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+}
+
+/* Wenn Alben vorhanden sind, Heading oben */
+.main-content > .main-heading {
+    margin-bottom: 0;
+    margin-top: 0;
+    align-self: center;
+    width: 100%;
+    text-align: center;
+    padding: 0 0 8px 0;
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+/* Responsive: Heading zentriert auf allen Geräten */
+@media (max-width: 768px) {
+    .main-content > .main-heading {
+        font-size: 1.75rem;
+    }
+}
+
+/* Untertitel */
+.subtitle {
+    font-size: 1rem;
+    color: var(--secondary-text-color);
+    font-weight: 400;
+    max-width: 500px;
+    line-height: 1.5;
+    margin-top: 8px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .main-heading {
+        font-size: 2.25rem;
+    }
+    
+    .subtitle {
+        font-size: 0.9375rem;
+    }
+    
+    .main-content {
+        padding: 20px 16px;
+        padding-bottom: 90px;
+    }
+    
+    .albums-container {
+        gap: 16px;
+        margin-top: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-heading {
+        font-size: 1.875rem;
+    }
+    
+    .subtitle {
+        font-size: 0.875rem;
+    }
+    
+    .albums-container {
+        gap: 12px;
+        grid-template-columns: repeat(auto-fill, minmax(min(140px, 100%), 1fr));
+    }
+}
+
+/* Floating Action Button (FAB) */
+.fab-button {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    border: none;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.fab-button:hover {
+    background-color: var(--primary-hover);
+    transform: scale(1.1);
+    box-shadow: 0 12px 28px rgba(74, 144, 226, 0.4);
+}
+
+.fab-button:active {
+    transform: scale(0.95);
+}
+
+.fab-icon {
+    font-size: 2rem;
+    font-weight: 300;
+    line-height: 1;
+    user-select: none;
+}
+
+/* Mobile Anpassungen - Extra Abstand für Browser-UI */
+@media (max-width: 768px) {
+    .fab-button {
+        bottom: max(24px, env(safe-area-inset-bottom, 24px) + 24px);
+        right: max(24px, env(safe-area-inset-right, 24px) + 24px);
+        width: 56px;
+        height: 56px;
+    }
+    
+    .fab-icon {
+        font-size: 1.75rem;
+    }
+}
+
+/* Extra Sicherheit für kleine Bildschirme */
+@media (max-width: 480px) {
+    .fab-button {
+        bottom: 80px; /* Genügend Abstand für Browser-UI */
+        width: 56px;
+        height: 56px;
+    }
+}
+
+/* Sicherstellen, dass der Button auf sehr kleinen Bildschirmen sichtbar bleibt */
+@media (max-height: 600px) {
+    .fab-button {
+        bottom: 70px;
+    }
+}
+
+/* Click-Effekt für FAB */
+.fab-button.fab-clicked {
+    transform: scale(0.85);
+    background-color: var(--primary-hover);
+}
+
+/* Link-Styling für FAB entfernen */
+.fab-button {
+    text-decoration: none;
+}
+
+/* ===== KAMERA-SEITE ===== */
+.camera-page {
+    overflow: hidden;
+    background-color: #000;
+}
+
+.camera-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.camera-video {
+    width: 100%;
+    height: 100vh;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* Overlay für quadratische Ansicht */
+.camera-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.square-frame {
+    width: min(100vw, 100vh);
+    height: min(100vw, 100vh);
+    border: 3px solid rgba(255, 255, 255, 0.8);
+    border-radius: 4px;
+    box-shadow: 
+        0 0 0 9999px rgba(0, 0, 0, 0.4),
+        inset 0 0 0 2px rgba(255, 255, 255, 0.2);
+    pointer-events: none;
+}
+
+.camera-canvas {
+    display: none;
+}
+
+.camera-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+    padding-bottom: max(40px, env(safe-area-inset-bottom, 40px) + 40px);
+    z-index: 100;
+}
+
+.camera-capture-btn {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 6px solid var(--text-light);
+    background-color: var(--bg-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-lg);
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.camera-capture-btn:active,
+.camera-capture-btn.clicked {
+    transform: scale(0.9);
+    border-color: var(--primary-color);
+}
+
+.capture-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    position: relative;
+}
+
+.capture-icon::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: var(--text-light);
+}
+
+.back-button {
+    position: absolute;
+    top: max(20px, env(safe-area-inset-top, 20px) + 20px);
+    left: max(20px, env(safe-area-inset-left, 20px) + 20px);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-size: 1.5rem;
+    z-index: 100;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
+}
+
+.back-button:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+    transform: scale(1.1);
+}
+
+.back-icon {
+    line-height: 1;
+    font-weight: 300;
+}
+
+/* Confirm Button */
+.confirm-button {
+    position: absolute;
+    top: max(20px, env(safe-area-inset-top, 20px) + 20px);
+    right: max(20px, env(safe-area-inset-right, 20px) + 20px);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    font-size: 1.5rem;
+    z-index: 100;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-md);
+}
+
+.confirm-button:hover {
+    background-color: var(--primary-hover);
+    transform: scale(1.1);
+    box-shadow: var(--shadow-lg);
+}
+
+.confirm-button:active {
+    transform: scale(0.95);
+}
+
+.confirm-icon {
+    line-height: 1;
+    font-weight: 600;
+}
+
+/* Photo Stack Container */
+.photo-stack-container {
+    position: fixed;
+    bottom: max(40px, env(safe-area-inset-bottom, 40px) + 40px);
+    right: 24px;
+    z-index: 90;
+}
+
+/* Photo Stack */
+.photo-stack {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    display: none;
+}
+
+/* Photo Counter */
+.photo-counter {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: 600;
+    box-shadow: var(--shadow-md);
+    border: 2px solid var(--text-light);
+    z-index: 100;
+}
+
+.stack-photo {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+    border: 2px solid var(--text-light);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.stack-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Responsive Anpassungen für Kamera-Seite */
+@media (max-width: 768px) {
+    .camera-capture-btn {
+        width: 72px;
+        height: 72px;
+        border-width: 5px;
+    }
+    
+    .capture-icon {
+        width: 54px;
+        height: 54px;
+    }
+    
+    .capture-icon::before {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .photo-stack-container {
+        bottom: max(40px, env(safe-area-inset-bottom, 40px) + 40px);
+        right: 20px;
+    }
+    
+    .photo-counter {
+        width: 22px;
+        height: 22px;
+        font-size: 0.7rem;
+        top: -7px;
+        right: -7px;
+    }
+    
+    .photo-stack {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .stack-photo {
+        width: 70px;
+        height: 70px;
+    }
+}
+
+@media (max-width: 480px) {
+    .photo-stack-container {
+        bottom: max(30px, env(safe-area-inset-bottom, 30px) + 30px);
+        right: 16px;
+    }
+    
+    .photo-counter {
+        width: 20px;
+        height: 20px;
+        font-size: 0.65rem;
+        top: -6px;
+        right: -6px;
+    }
+    
+    .photo-stack {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .stack-photo {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .camera-controls {
+        padding-bottom: max(30px, env(safe-area-inset-bottom, 30px) + 30px);
+    }
+}
+
+/* ===== REVIEW-SEITE ===== */
+.review-page {
+    overflow: hidden;
+    background-color: var(--bg-primary);
+}
+
+.review-container {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    padding-top: max(60px, env(safe-area-inset-top, 60px) + 60px);
+    padding-bottom: max(100px, env(safe-area-inset-bottom, 100px) + 100px);
+}
+
+.review-progress {
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 30px;
+}
+
+.progress-text {
+    text-align: center;
+    color: var(--primary-text-color);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 4px;
+    background-color: var(--bg-secondary);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: var(--primary-color);
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+.image-container {
+    position: relative;
+    width: 100%;
+    max-width: min(90vw, 90vh);
+    max-height: min(90vw, 90vh);
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 30px;
+    touch-action: pan-y;
+    transition: opacity 0.3s ease;
+}
+
+.image-container.image-dimmed {
+    opacity: 0.4;
+}
+
+.review-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.swipe-feedback {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 20px 40px;
+    border-radius: 12px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.swipe-feedback.swipe-keep {
+    background-color: rgba(40, 167, 69, 0.9);
+    color: var(--text-light);
+    opacity: 1;
+}
+
+.swipe-feedback.swipe-delete {
+    background-color: rgba(220, 53, 69, 0.9);
+    color: var(--text-light);
+    opacity: 1;
+}
+
+.review-instructions {
+    text-align: center;
+    color: var(--secondary-text-color);
+    margin-top: auto;
+}
+
+.instruction-text {
+    font-size: 0.9rem;
+    margin: 5px 0;
+}
+
+.review-complete {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: var(--bg-primary);
+}
+
+.create-album-btn {
+    padding: 18px 48px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-light);
+    background-color: var(--primary-color);
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    transition: all 0.3s ease;
+}
+
+.create-album-btn:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(74, 144, 226, 0.4);
+}
+
+.create-album-btn:active {
+    transform: translateY(0);
+}
+
+/* Responsive Anpassungen für Review-Seite */
+@media (max-width: 768px) {
+    .review-container {
+        padding-top: max(50px, env(safe-area-inset-top, 50px) + 50px);
+        padding-bottom: max(80px, env(safe-area-inset-bottom, 80px) + 80px);
+    }
+    
+    .progress-text {
+        font-size: 0.9rem;
+    }
+    
+    .instruction-text {
+        font-size: 0.85rem;
+    }
+    
+    .create-album-btn {
+        padding: 16px 40px;
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .review-container {
+        padding: 15px;
+        padding-top: max(40px, env(safe-area-inset-top, 40px) + 40px);
+        padding-bottom: max(70px, env(safe-area-inset-bottom, 70px) + 70px);
+    }
+    
+    .image-container {
+        max-width: 95vw;
+        max-height: 95vw;
+    }
+    
+    .swipe-feedback {
+        padding: 15px 30px;
+        font-size: 1.25rem;
+    }
+    
+    .instruction-text {
+        font-size: 0.8rem;
+    }
+    
+    .create-album-btn {
+        padding: 14px 36px;
+        font-size: 1rem;
+    }
+}
+
+/* ===== MODAL ===== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 20px;
+    backdrop-filter: blur(2px);
+}
+
+.modal-content {
+    position: relative;
+    background-color: var(--bg-primary);
+    border-radius: 16px;
+    padding: 30px;
+    padding-top: 50px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: var(--shadow-lg);
+    animation: modalSlideIn 0.3s ease;
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--bg-secondary);
+    color: var(--primary-text-color);
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.modal-close-btn:hover {
+    background-color: var(--bg-accent);
+    transform: scale(1.1);
+}
+
+.modal-close-btn:active {
+    transform: scale(0.95);
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-text-color);
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--primary-text-color);
+    margin-bottom: 8px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--bg-primary);
+    color: var(--primary-text-color);
+    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.form-group input::placeholder {
+    color: var(--secondary-text-color);
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    justify-content: space-between;
+}
+
+.modal-btn {
+    flex: 1;
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.modal-btn-cancel {
+    background-color: var(--bg-secondary);
+    color: var(--primary-text-color);
+}
+
+.modal-btn-cancel:hover {
+    background-color: var(--bg-accent);
+}
+
+.modal-btn-confirm {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+}
+
+.modal-btn-confirm:hover {
+    background-color: var(--primary-hover);
+}
+
+.modal-btn-danger {
+    background-color: var(--error-color);
+    color: var(--text-light);
+}
+
+.modal-btn-danger:hover {
+    background-color: #C82333;
+}
+
+.modal-btn:active {
+    transform: scale(0.98);
+}
+
+/* Responsive Modal */
+@media (max-width: 480px) {
+    .modal-content {
+        padding: 24px 20px;
+    }
+    
+    .modal-title {
+        font-size: 1.25rem;
+        margin-bottom: 20px;
+    }
+    
+    .albums-container {
+        gap: 12px;
+        padding: 15px;
+        max-height: calc(100vh - 180px);
+    }
+    
+    .album-card {
+        width: 120px;
+    }
+    
+    .album-name {
+        font-size: 0.9rem;
+    }
+    
+    .album-location {
+        font-size: 0.8rem;
+    }
+}
+
+

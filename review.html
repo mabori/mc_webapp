@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="description" content="Bilder überprüfen - Memories">
+    <title>Bilder überprüfen - Memories</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="review-page">
+    <div class="review-container">
+        <div class="review-progress">
+            <div class="progress-text" id="progressText">1 / 0</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+        
+        <div class="image-container" id="imageContainer">
+            <img id="currentImage" class="review-image" src="" alt="Foto">
+            <div class="swipe-feedback" id="swipeFeedback"></div>
+        </div>
+        
+        <div class="review-instructions">
+            <p class="instruction-text">Nach rechts wischen / Pfeil rechts = behalten</p>
+            <p class="instruction-text">Nach links wischen / Pfeil links = löschen</p>
+        </div>
+    </div>
+    
+    <!-- Album Erstellen Modal -->
+    <div class="modal-overlay" id="albumModal" style="display: none;">
+        <div class="modal-content">
+            <h2 class="modal-title">Album erstellen</h2>
+            <form id="albumForm">
+                <div class="form-group">
+                    <label for="albumName">Name</label>
+                    <input type="text" id="albumName" name="albumName" placeholder="Album-Name eingeben" required>
+                </div>
+                <div class="form-group">
+                    <label for="albumLocation">Ort</label>
+                    <input type="text" id="albumLocation" name="albumLocation" placeholder="Ort eingeben" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="modal-btn modal-btn-cancel" id="cancelBtn">Verwerfen</button>
+                    <button type="submit" class="modal-btn modal-btn-confirm">Bestätigen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="review.js"></script>
+</body>
+</html>
+
