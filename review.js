@@ -501,7 +501,7 @@ function handleDeviceOrientation(event) {
 // Device Orientation Event Listener initialisieren
 function initDeviceOrientation() {
     if (!window.DeviceOrientationEvent) {
-        console.log('DeviceOrientationEvent nicht verfügbar - Feature nicht unterstützt');
+        console.log('⚠ DeviceOrientationEvent nicht verfügbar - Feature nicht unterstützt');
         return;
     }
     
@@ -510,9 +510,9 @@ function initDeviceOrientation() {
     
     // Prüfen ob Berechtigung benötigt wird (iOS 13+)
     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-        // iOS 13+ benötigt explizite Berechtigung
+        // iOS 13+ Safari benötigt explizite Berechtigung
         if (permissionStatus === 'granted') {
-            // Berechtigung wurde bereits erteilt - Event Listener hinzufügen
+            // Berechtigung wurde bereits beim Onboarding erteilt - Event Listener hinzufügen
             try {
                 window.addEventListener('deviceorientation', handleDeviceOrientation, { passive: true });
                 console.log('✓ Device Orientation Event Listener aktiviert (iOS mit Berechtigung)');
@@ -523,22 +523,46 @@ function initDeviceOrientation() {
             } catch (error) {
                 console.error('Fehler beim Hinzufügen des Device Orientation Listeners:', error);
             }
+        } else if (permissionStatus === 'denied') {
+            console.warn('⚠ Device Orientation Berechtigung wurde verweigert');
+            console.warn('Bitte erlauben Sie den Zugriff auf den Neigungssensor in den Browser-Einstellungen');
+        } else if (permissionStatus === 'not_supported') {
+            console.warn('⚠ Device Orientation wird auf diesem Gerät nicht unterstützt');
         } else {
-            console.warn('⚠ Device Orientation Berechtigung nicht erteilt. Status:', permissionStatus);
+            console.warn('⚠ Device Orientation Berechtigung Status unbekannt:', permissionStatus);
             console.warn('Bitte Berechtigung beim Onboarding auf der Berechtigungsseite erteilen');
         }
     } else {
-        // Für andere Browser/Systeme (Android, ältere iOS) direkt verwenden
+        // Für andere Browser/Systeme (Android Chrome, ältere iOS) direkt verwenden
         // Berechtigung wird automatisch erteilt oder nicht benötigt
-        try {
-            window.addEventListener('deviceorientation', handleDeviceOrientation, { passive: true });
-            console.log('✓ Device Orientation Event Listener aktiviert (keine Berechtigung benötigt)');
-            console.log('ℹ Neigen Sie das Gerät nach rechts zum Behalten, nach links zum Löschen');
-            
-            // Reset lastBeta beim Start für neues Bild
-            lastBeta = null;
-        } catch (error) {
-            console.error('Fehler beim Hinzufügen des Device Orientation Listeners:', error);
+        // permissionStatus sollte 'granted' sein (wurde beim Onboarding gesetzt)
+        if (permissionStatus === 'granted' || permissionStatus === null) {
+            // permissionStatus kann null sein bei alten localStorage-Daten - trotzdem versuchen
+            try {
+                window.addEventListener('deviceorientation', handleDeviceOrientation, { passive: true });
+                console.log('✓ Device Orientation Event Listener aktiviert (Android/ältere iOS)');
+                console.log('ℹ Neigen Sie das Gerät nach rechts zum Behalten, nach links zum Löschen');
+                
+                // Status auf 'granted' setzen falls noch nicht gesetzt
+                if (!permissionStatus) {
+                    localStorage.setItem('deviceOrientationPermission', 'granted');
+                }
+                
+                // Reset lastBeta beim Start für neues Bild
+                lastBeta = null;
+            } catch (error) {
+                console.error('Fehler beim Hinzufügen des Device Orientation Listeners:', error);
+            }
+        } else {
+            console.warn('⚠ Device Orientation Permission Status:', permissionStatus);
+            // Trotzdem versuchen zu verwenden (für Android sollte es funktionieren)
+            try {
+                window.addEventListener('deviceorientation', handleDeviceOrientation, { passive: true });
+                console.log('✓ Device Orientation Event Listener aktiviert (versucht trotz Status)');
+                lastBeta = null;
+            } catch (error) {
+                console.error('Fehler beim Hinzufügen des Device Orientation Listeners:', error);
+            }
         }
     }
 }
