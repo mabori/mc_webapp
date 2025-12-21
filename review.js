@@ -20,8 +20,8 @@ let isDragging = false;
 let currentDragX = 0;
 
 // Device Orientation
-let lastBeta = null;
-let tiltThreshold = 18; // Grad für klare Neigung (reduziert für bessere Erkennung)
+let neutralTiltValue = null; // Neutraler Referenzwert für Neigung
+let tiltThreshold = 18; // Grad für klare Neigung
 let tiltCheckTimeout = null;
 let lastDecisionTime = 0;
 let decisionCooldown = 600; // Mindestzeit zwischen Entscheidungen (ms) - reduziert für bessere Reaktionszeit
@@ -85,10 +85,11 @@ function showNextImage() {
     resetImagePosition();
     
     // Device Orientation zurücksetzen für neues Bild
-    lastBeta = null;
+    neutralTiltValue = null;
     tiltDirection = null;
     tiltStartTime = 0;
     tiltActive = false;
+    currentTiltValue = 0;
     if (tiltCheckTimeout) {
         clearTimeout(tiltCheckTimeout);
         tiltCheckTimeout = null;
@@ -355,21 +356,22 @@ function handleDeviceOrientation(event) {
         return;
     }
     
-    // Beta: Neigung vor/zurück (-180 bis 180), ~0 = aufrecht (Portrait-Modus)
-    // Gamma: Neigung links/rechts (-90 bis 90), ~0 = gerade (Portrait-Modus)
-    const beta = event.beta !== null ? event.beta : 0;
-    const gamma = event.gamma !== null ? event.gamma : 0;
+    // Prüfen ob Event-Daten vorhanden sind
+    if (event.gamma === null && event.gamma === undefined && event.beta === null && event.beta === undefined) {
+        return;
+    }
     
-    // Für Handys im Portrait-Modus verwenden wir Gamma für links/rechts Neigung
+    // Gamma: Neigung links/rechts (-90 bis 90), ~0 = gerade (Portrait-Modus)
     // Gamma: negative Werte = nach links geneigt, positive = nach rechts geneigt
+    const gamma = event.gamma !== null && event.gamma !== undefined ? event.gamma : 0;
     const tiltValue = gamma;
     currentTiltValue = tiltValue;
     
     const now = Date.now();
     
-    // Initialisierung - erste Messung (Referenzwert für neutral)
-    if (lastBeta === null || lastBeta === undefined) {
-        lastBeta = tiltValue;
+    // Initialisierung - erste Messung als neutraler Referenzwert
+    if (neutralTiltValue === null || neutralTiltValue === undefined) {
+        neutralTiltValue = tiltValue;
         tiltStartTime = 0;
         tiltDirection = null;
         tiltActive = false;
@@ -381,9 +383,12 @@ function handleDeviceOrientation(event) {
         return;
     }
     
+    // Berechne relative Neigung vom neutralen Wert
+    const relativeTilt = tiltValue - neutralTiltValue;
+    
     // Prüfen ob wirklich klar geneigt (über dem Threshold)
-    const tiltRight = tiltValue > tiltThreshold;
-    const tiltLeft = tiltValue < -tiltThreshold;
+    const tiltRight = relativeTilt > tiltThreshold;
+    const tiltLeft = relativeTilt < -tiltThreshold;
     
     // Visuelles Feedback während der Neigung
     if (tiltRight) {
@@ -402,17 +407,17 @@ function handleDeviceOrientation(event) {
                 currentImage.classList.remove('swipe-delete-active');
                 currentImage.classList.add('swipe-keep-active');
             }
-            updateSwipeFeedback('keep', Math.min(1, (tiltValue - tiltThreshold) / 20));
+            updateSwipeFeedback('keep', Math.min(1, Math.abs(relativeTilt) / 30));
         }
         
-        // Entscheidung treffen nach 700ms stabiler Neigung (verkürzt für bessere Reaktionszeit)
-        if (!tiltCheckTimeout && now - tiltStartTime >= 700) {
+        // Entscheidung treffen nach 800ms stabiler Neigung
+        if (!tiltCheckTimeout && now - tiltStartTime >= 800) {
             tiltCheckTimeout = setTimeout(() => {
                 // Nochmal prüfen ob immer noch geneigt
-                if (!isProcessing && currentTiltValue > tiltThreshold && currentImage && currentIndex < photos.length) {
+                if (!isProcessing && (currentTiltValue - neutralTiltValue) > tiltThreshold && currentImage && currentIndex < photos.length) {
                     makeDecision(true);
                     lastDecisionTime = Date.now();
-                    lastBeta = null; // Reset für nächstes Bild
+                    neutralTiltValue = null; // Reset für nächstes Bild
                     tiltDirection = null;
                     tiltStartTime = 0;
                     tiltActive = false;
@@ -438,17 +443,17 @@ function handleDeviceOrientation(event) {
                 currentImage.classList.remove('swipe-keep-active');
                 currentImage.classList.add('swipe-delete-active');
             }
-            updateSwipeFeedback('delete', Math.min(1, Math.abs(tiltValue + tiltThreshold) / 20));
+            updateSwipeFeedback('delete', Math.min(1, Math.abs(relativeTilt) / 30));
         }
         
-        // Entscheidung treffen nach 700ms stabiler Neigung
-        if (!tiltCheckTimeout && now - tiltStartTime >= 700) {
+        // Entscheidung treffen nach 800ms stabiler Neigung
+        if (!tiltCheckTimeout && now - tiltStartTime >= 800) {
             tiltCheckTimeout = setTimeout(() => {
                 // Nochmal prüfen ob immer noch geneigt
-                if (!isProcessing && currentTiltValue < -tiltThreshold && currentImage && currentIndex < photos.length) {
+                if (!isProcessing && (currentTiltValue - neutralTiltValue) < -tiltThreshold && currentImage && currentIndex < photos.length) {
                     makeDecision(false);
                     lastDecisionTime = Date.now();
-                    lastBeta = null; // Reset für nächstes Bild
+                    neutralTiltValue = null; // Reset für nächstes Bild
                     tiltDirection = null;
                     tiltStartTime = 0;
                     tiltActive = false;
@@ -475,58 +480,44 @@ function handleDeviceOrientation(event) {
             }
             resetSwipeFeedback();
         }
-        lastBeta = tiltValue;
+        // Neutralen Wert aktualisieren (gleitender Durchschnitt für Stabilität)
+        neutralTiltValue = (neutralTiltValue * 0.9 + tiltValue * 0.1);
     }
 }
 
 // Device Orientation Event Listener initialisieren
 function initDeviceOrientation() {
-    if (!window.DeviceOrientationEvent) {
+    // Prüfen ob DeviceOrientationEvent unterstützt wird
+    if (typeof DeviceOrientationEvent === 'undefined' || DeviceOrientationEvent === null) {
         return;
     }
     
     const permissionStatus = localStorage.getItem('deviceOrientationPermission');
     
-    // Prüfen ob Berechtigung benötigt wird (iOS 13+)
+    // Für iOS 13+ Safari benötigt explizite Berechtigung
     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-        // iOS 13+ Safari benötigt explizite Berechtigung
+        // iOS 13+ Safari - Berechtigung wurde bereits beim Onboarding erteilt
         if (permissionStatus === 'granted') {
-            // Berechtigung wurde bereits beim Onboarding erteilt - Event Listener hinzufügen
             try {
                 window.addEventListener('deviceorientation', handleDeviceOrientation, { passive: true });
-                // Reset lastBeta beim Start für neues Bild
-                lastBeta = null;
+                neutralTiltValue = null;
             } catch (error) {
-                // Fehler beim Hinzufügen des Listeners - Feature nicht verfügbar
+                // Fehler beim Hinzufügen des Listeners
             }
         }
     } else {
         // Für andere Browser/Systeme (Android Chrome, ältere iOS) direkt verwenden
         // Berechtigung wird automatisch erteilt oder nicht benötigt
-        // permissionStatus sollte 'granted' sein (wurde beim Onboarding gesetzt)
-        if (permissionStatus === 'granted' || permissionStatus === null) {
-            // permissionStatus kann null sein bei alten localStorage-Daten - trotzdem versuchen
-            try {
-                window.addEventListener('deviceorientation', handleDeviceOrientation, { passive: true });
-                
-                // Status auf 'granted' setzen falls noch nicht gesetzt
-                if (!permissionStatus) {
-                    localStorage.setItem('deviceOrientationPermission', 'granted');
-                }
-                
-                // Reset lastBeta beim Start für neues Bild
-                lastBeta = null;
-            } catch (error) {
-                // Fehler beim Hinzufügen des Listeners - Feature nicht verfügbar
+        try {
+            window.addEventListener('deviceorientation', handleDeviceOrientation, { passive: true });
+            neutralTiltValue = null;
+            
+            // Status auf 'granted' setzen falls noch nicht gesetzt
+            if (permissionStatus !== 'granted') {
+                localStorage.setItem('deviceOrientationPermission', 'granted');
             }
-        } else {
-            // Trotzdem versuchen zu verwenden (für Android sollte es funktionieren)
-            try {
-                window.addEventListener('deviceorientation', handleDeviceOrientation, { passive: true });
-                lastBeta = null;
-            } catch (error) {
-                // Fehler beim Hinzufügen des Listeners - Feature nicht verfügbar
-            }
+        } catch (error) {
+            // Fehler beim Hinzufügen des Listeners
         }
     }
 }
