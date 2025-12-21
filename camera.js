@@ -8,8 +8,11 @@ const photoStack = document.getElementById('photoStack');
 const photoCounter = document.getElementById('photoCounter');
 
 // Kamera initialisieren
+// Berechtigung wurde bereits beim Onboarding angefordert, daher direkt verwenden
 async function initCamera() {
     try {
+        // Berechtigung wurde bereits beim Onboarding angefordert
+        // Browser speichert die Berechtigung, daher wird hier nicht erneut gefragt
         stream = await navigator.mediaDevices.getUserMedia({
             video: {
                 facingMode: 'environment', // Rückkamera bevorzugen
@@ -27,7 +30,12 @@ async function initCamera() {
         });
     } catch (error) {
         console.error('Kamera-Fehler:', error);
-        alert('Kamera konnte nicht geöffnet werden. Bitte Berechtigungen prüfen.');
+        // Wenn die Berechtigung verweigert wurde, benutzerfreundliche Nachricht
+        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+            alert('Kamera-Berechtigung wurde verweigert. Bitte erlauben Sie den Zugriff in den Browsereinstellungen.');
+        } else {
+            alert('Kamera konnte nicht geöffnet werden. Bitte Berechtigungen prüfen.');
+        }
     }
 }
 

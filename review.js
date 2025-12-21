@@ -209,17 +209,23 @@ function handleDeviceOrientation(event) {
 }
 
 // Device Orientation Event Listener
+// Berechtigung wurde bereits beim Onboarding angefordert, daher direkt verwenden
 if (window.DeviceOrientationEvent) {
-    // Request permission für iOS 13+
+    const permissionStatus = localStorage.getItem('deviceOrientationPermission');
+    
+    // Prüfen ob Berechtigung bereits erteilt wurde (iOS 13+)
     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-        DeviceOrientationEvent.requestPermission()
-            .then(response => {
-                if (response === 'granted') {
-                    window.addEventListener('deviceorientation', handleDeviceOrientation, { passive: true });
-                }
-            })
-            .catch(console.error);
+        // Bei iOS 13+ wurde die Berechtigung bereits beim Onboarding angefordert
+        // Wenn sie erteilt wurde, können wir den Event Listener direkt verwenden
+        if (permissionStatus === 'granted') {
+            window.addEventListener('deviceorientation', handleDeviceOrientation, { passive: true });
+        } else {
+            // Berechtigung wurde verweigert oder nicht erteilt - Feature nicht verfügbar
+            console.warn('Device Orientation Berechtigung nicht erteilt');
+        }
     } else {
+        // Für andere Browser/Systeme (Android, ältere iOS) direkt verwenden
+        // Berechtigung wird automatisch erteilt
         window.addEventListener('deviceorientation', handleDeviceOrientation, { passive: true });
     }
 }
