@@ -93,6 +93,9 @@ function showNextImage() {
     // Bild zurücksetzen
     resetImagePosition();
     
+    // Device Orientation zurücksetzen für neues Bild
+    lastBeta = null;
+    
     currentIndex++;
     if (currentIndex < photos.length) {
         currentImage.src = photos[currentIndex];
@@ -116,17 +119,26 @@ function resetImagePosition() {
 
 // Entscheidung treffen (behalten = true, löschen = false)
 function makeDecision(keep) {
-    if (isProcessing) return;
+    if (isProcessing || !currentImage) return;
     
     isProcessing = true;
     
     const currentPhoto = photos[currentIndex];
     
+    // Visuelles Feedback: Bild in entsprechende Richtung verschieben
     if (keep) {
         keptPhotos.push(currentPhoto);
+        // Bild nach rechts verschieben
+        currentImage.style.transform = `translateX(${window.innerWidth}px) rotate(15deg)`;
+        currentImage.style.opacity = '0';
+        currentImage.classList.add('swipe-keep-active');
         showSwipeFeedback('keep');
     } else {
         deletedPhotos.push(currentPhoto);
+        // Bild nach links verschieben
+        currentImage.style.transform = `translateX(-${window.innerWidth}px) rotate(-15deg)`;
+        currentImage.style.opacity = '0';
+        currentImage.classList.add('swipe-delete-active');
         showSwipeFeedback('delete');
     }
     
@@ -301,6 +313,11 @@ function initKeyboardControls() {
 let currentTiltValue = 0;
 
 function handleDeviceOrientation(event) {
+    // Prüfen ob gerade verarbeitet wird oder kein Bild vorhanden
+    if (isProcessing || !currentImage || photos.length === 0) {
+        return;
+    }
+    
     // Beta: Neigung vor/zurück (-180 bis 180), ~0 = aufrecht (Portrait-Modus)
     // Gamma: Neigung links/rechts (-90 bis 90), ~0 = gerade (Portrait-Modus)
     const beta = event.beta !== null ? event.beta : 0;
@@ -312,7 +329,7 @@ function handleDeviceOrientation(event) {
     currentTiltValue = tiltValue;
     
     // Initialisierung - erste Messung
-    if (lastBeta === null) {
+    if (lastBeta === null || lastBeta === undefined) {
         lastBeta = tiltValue;
         return;
     }
@@ -334,23 +351,25 @@ function handleDeviceOrientation(event) {
         clearTimeout(tiltCheckTimeout);
         tiltCheckTimeout = setTimeout(() => {
             // Prüfen ob immer noch nach rechts geneigt (aktuelle Messung verwenden)
-            if (!isProcessing && currentTiltValue > tiltThreshold) {
+            if (!isProcessing && currentTiltValue > tiltThreshold && currentImage) {
+                console.log('Device Orientation: Behalten (nach rechts geneigt)');
                 makeDecision(true);
                 lastDecisionTime = Date.now();
                 lastBeta = currentTiltValue;
             }
-        }, 400); // 400ms Verzögerung für stabilere Erkennung
+        }, 500); // 500ms Verzögerung für stabilere Erkennung
     } else if (tiltLeft) {
         // Nach links = löschen
         clearTimeout(tiltCheckTimeout);
         tiltCheckTimeout = setTimeout(() => {
             // Prüfen ob immer noch nach links geneigt (aktuelle Messung verwenden)
-            if (!isProcessing && currentTiltValue < -tiltThreshold) {
+            if (!isProcessing && currentTiltValue < -tiltThreshold && currentImage) {
+                console.log('Device Orientation: Löschen (nach links geneigt)');
                 makeDecision(false);
                 lastDecisionTime = Date.now();
                 lastBeta = currentTiltValue;
             }
-        }, 400);
+        }, 500);
     } else {
         // Zurück in neutrale Position - Timeout löschen
         clearTimeout(tiltCheckTimeout);
@@ -361,27 +380,43 @@ function handleDeviceOrientation(event) {
 // Device Orientation Event Listener initialisieren
 function initDeviceOrientation() {
     if (!window.DeviceOrientationEvent) {
-        console.log('DeviceOrientationEvent nicht verfügbar');
+        console.log('DeviceOrientationEvent nicht verfügbar - Feature nicht unterstützt');
         return;
     }
     
     const permissionStatus = localStorage.getItem('deviceOrientationPermission');
+    console.log('Device Orientation Permission Status:', permissionStatus);
     
     // Prüfen ob Berechtigung benötigt wird (iOS 13+)
     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
         // iOS 13+ benötigt explizite Berechtigung
         if (permissionStatus === 'granted') {
             // Berechtigung wurde bereits erteilt - Event Listener hinzufügen
-            window.addEventListener('deviceorientation', handleDeviceOrientation, { passive: true });
-            console.log('Device Orientation Event Listener aktiviert');
+            try {
+                window.addEventListener('deviceorientation', handleDeviceOrientation, { passive: true });
+                console.log('✓ Device Orientation Event Listener aktiviert (iOS mit Berechtigung)');
+                
+                // Reset lastBeta beim Start
+                lastBeta = null;
+            } catch (error) {
+                console.error('Fehler beim Hinzufügen des Device Orientation Listeners:', error);
+            }
         } else {
-            console.warn('Device Orientation Berechtigung nicht erteilt. Status:', permissionStatus);
+            console.warn('⚠ Device Orientation Berechtigung nicht erteilt. Status:', permissionStatus);
+            console.warn('Bitte Berechtigung beim Onboarding erteilen');
         }
     } else {
         // Für andere Browser/Systeme (Android, ältere iOS) direkt verwenden
         // Berechtigung wird automatisch erteilt oder nicht benötigt
-        window.addEventListener('deviceorientation', handleDeviceOrientation, { passive: true });
-        console.log('Device Orientation Event Listener aktiviert (keine Berechtigung benötigt)');
+        try {
+            window.addEventListener('deviceorientation', handleDeviceOrientation, { passive: true });
+            console.log('✓ Device Orientation Event Listener aktiviert (keine Berechtigung benötigt)');
+            
+            // Reset lastBeta beim Start
+            lastBeta = null;
+        } catch (error) {
+            console.error('Fehler beim Hinzufügen des Device Orientation Listeners:', error);
+        }
     }
 }
 
@@ -403,6 +438,8 @@ function showCompleteScreen() {
     if (imageContainer) {
         imageContainer.classList.add('image-dimmed');
     }
+    
+    // Device Orientation bleibt aktiv (Modal blockiert es nicht)
     
     // Modal direkt öffnen (Overlay mit abgedunkeltem Hintergrund)
     const albumModal = document.getElementById('albumModal');
@@ -499,7 +536,8 @@ function initReviewPage() {
     // 3. Keyboard Controls initialisieren
     initKeyboardControls();
     
-    // 4. Device Orientation initialisieren
+    // 4. Device Orientation initialisieren (wird beim Laden der Seite aktiviert)
+    // Wichtig: Muss nach loadPhotos() aufgerufen werden, damit currentImage verfügbar ist
     initDeviceOrientation();
     
     // 5. Album Modal initialisieren
