@@ -370,18 +370,25 @@ function handleDeviceOrientation(event) {
     
     const now = Date.now();
     
-    // Initialisierung - erste Messung als neutraler Referenzwert
+    // Initialisierung - warte bis Handy in neutraler Position ist
+    // WICHTIG: Setze neutralen Wert nur wenn Handy wirklich neutral ist (innerhalb von ±5 Grad)
     if (neutralTiltValue === null || neutralTiltValue === undefined) {
-        neutralTiltValue = tiltValue;
-        tiltStartTime = 0;
-        tiltDirection = null;
-        tiltActive = false;
-        // Bild in neutraler Position setzen
-        if (currentImage) {
-            currentImage.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
-            currentImage.style.transform = '';
-            currentImage.style.opacity = '1';
+        // Prüfe ob Handy nahe genug an neutraler Position ist (±5 Grad)
+        const neutralThreshold = 5;
+        if (Math.abs(tiltValue) <= neutralThreshold) {
+            // Handy ist in neutraler Position - setze als Referenzwert
+            neutralTiltValue = tiltValue;
+            tiltStartTime = 0;
+            tiltDirection = null;
+            tiltActive = false;
+            // Bild in neutraler Position setzen
+            if (currentImage) {
+                currentImage.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
+                currentImage.style.transform = '';
+                currentImage.style.opacity = '1';
+            }
         }
+        // Wenn Handy noch nicht neutral ist, warten wir weiter
         return;
     }
     
