@@ -19,24 +19,28 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             
             // Device Orientation Berechtigung anfordern (iOS 13+)
-            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
                 try {
+                    console.log('Fordere Device Orientation Berechtigung an...');
                     const permission = await DeviceOrientationEvent.requestPermission();
+                    console.log('Device Orientation Berechtigung:', permission);
                     if (permission === 'granted') {
                         // Berechtigung erteilt - in localStorage speichern
                         localStorage.setItem('deviceOrientationPermission', 'granted');
+                        console.log('Device Orientation Berechtigung erteilt und gespeichert');
                     } else {
                         console.warn('Device Orientation Berechtigung verweigert');
                         localStorage.setItem('deviceOrientationPermission', 'denied');
                     }
                 } catch (error) {
-                    console.error('Device Orientation Berechtigung:', error);
+                    console.error('Fehler bei Device Orientation Berechtigung:', error);
                     localStorage.setItem('deviceOrientationPermission', 'error');
                 }
             } else {
                 // Für Browser ohne requestPermission API (Android, ältere iOS)
-                // Berechtigung wird automatisch erteilt
+                // Berechtigung wird automatisch erteilt oder nicht benötigt
                 localStorage.setItem('deviceOrientationPermission', 'granted');
+                console.log('Device Orientation: Keine explizite Berechtigung benötigt');
             }
             
             // Onboarding als abgeschlossen markieren

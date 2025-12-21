@@ -157,19 +157,21 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Device Orientation für Neigung
-let tiltCheckInterval = null;
+let tiltCheckTimeout = null;
+let currentTiltValue = 0;
 
 function handleDeviceOrientation(event) {
-    // Beta: Neigung vor/zurück (-180 bis 180), ~0 = aufrecht
-    // Gamma: Neigung links/rechts (-90 bis 90), ~0 = gerade
-    const beta = event.beta;
-    const gamma = event.gamma;
+    // Beta: Neigung vor/zurück (-180 bis 180), ~0 = aufrecht (Portrait-Modus)
+    // Gamma: Neigung links/rechts (-90 bis 90), ~0 = gerade (Portrait-Modus)
+    const beta = event.beta !== null ? event.beta : 0;
+    const gamma = event.gamma !== null ? event.gamma : 0;
     
-    // Für Handys im Portrait-Modus verwenden wir Gamma (links/rechts Neigung)
-    // Beta wird für die Vor-/Zurück-Neigung verwendet
-    // Wir verwenden Gamma, da es die seitliche Neigung besser erfasst
-    const tiltValue = gamma !== null ? gamma : beta;
+    // Für Handys im Portrait-Modus verwenden wir Gamma für links/rechts Neigung
+    // Gamma: negative Werte = nach links geneigt, positive = nach rechts geneigt
+    const tiltValue = gamma;
+    currentTiltValue = tiltValue;
     
+    // Initialisierung - erste Messung
     if (lastBeta === null) {
         lastBeta = tiltValue;
         return;
@@ -182,8 +184,7 @@ function handleDeviceOrientation(event) {
         return;
     }
     
-    // Gamma: negative Werte = nach links geneigt, positive = nach rechts geneigt
-    // Beta als Fallback: ähnliche Logik
+    // Prüfen ob wirklich klar geneigt
     const tiltRight = tiltValue > tiltThreshold;
     const tiltLeft = tiltValue < -tiltThreshold;
     
@@ -192,51 +193,59 @@ function handleDeviceOrientation(event) {
         // Nach rechts = behalten
         clearTimeout(tiltCheckTimeout);
         tiltCheckTimeout = setTimeout(() => {
-            // Prüfen ob immer noch in der richtigen Richtung geneigt
-            if (!isProcessing && tiltValue > tiltThreshold) {
+            // Prüfen ob immer noch nach rechts geneigt (aktuelle Messung verwenden)
+            if (!isProcessing && currentTiltValue > tiltThreshold) {
                 makeDecision(true);
                 lastDecisionTime = Date.now();
+                lastBeta = currentTiltValue;
             }
-        }, 300); // 300ms Verzögerung für stabilere Erkennung
+        }, 400); // 400ms Verzögerung für stabilere Erkennung
     } else if (tiltLeft) {
         // Nach links = löschen
         clearTimeout(tiltCheckTimeout);
         tiltCheckTimeout = setTimeout(() => {
-            // Prüfen ob immer noch in der richtigen Richtung geneigt
-            if (!isProcessing && tiltValue < -tiltThreshold) {
+            // Prüfen ob immer noch nach links geneigt (aktuelle Messung verwenden)
+            if (!isProcessing && currentTiltValue < -tiltThreshold) {
                 makeDecision(false);
                 lastDecisionTime = Date.now();
+                lastBeta = currentTiltValue;
             }
-        }, 300);
+        }, 400);
     } else {
         // Zurück in neutrale Position - Timeout löschen
         clearTimeout(tiltCheckTimeout);
+        lastBeta = tiltValue;
     }
-    
-    lastBeta = tiltValue;
 }
 
-// Device Orientation Event Listener
-// Berechtigung wurde bereits beim Onboarding angefordert, daher direkt verwenden
-if (window.DeviceOrientationEvent) {
+// Device Orientation Event Listener initialisieren
+function initDeviceOrientation() {
+    if (!window.DeviceOrientationEvent) {
+        console.log('DeviceOrientationEvent nicht verfügbar');
+        return;
+    }
+    
     const permissionStatus = localStorage.getItem('deviceOrientationPermission');
     
-    // Prüfen ob Berechtigung bereits erteilt wurde (iOS 13+)
+    // Prüfen ob Berechtigung benötigt wird (iOS 13+)
     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-        // Bei iOS 13+ wurde die Berechtigung bereits beim Onboarding angefordert
-        // Wenn sie erteilt wurde, können wir den Event Listener direkt verwenden
+        // iOS 13+ benötigt explizite Berechtigung
         if (permissionStatus === 'granted') {
+            // Berechtigung wurde bereits erteilt - Event Listener hinzufügen
             window.addEventListener('deviceorientation', handleDeviceOrientation, { passive: true });
+            console.log('Device Orientation Event Listener aktiviert');
         } else {
-            // Berechtigung wurde verweigert oder nicht erteilt - Feature nicht verfügbar
-            console.warn('Device Orientation Berechtigung nicht erteilt');
+            console.warn('Device Orientation Berechtigung nicht erteilt. Status:', permissionStatus);
         }
     } else {
         // Für andere Browser/Systeme (Android, ältere iOS) direkt verwenden
-        // Berechtigung wird automatisch erteilt
+        // Berechtigung wird automatisch erteilt oder nicht benötigt
         window.addEventListener('deviceorientation', handleDeviceOrientation, { passive: true });
+        console.log('Device Orientation Event Listener aktiviert (keine Berechtigung benötigt)');
     }
 }
+
+// Device Orientation wird in der gemeinsamen Initialisierung aufgerufen
 
 // Complete Screen anzeigen - Modal direkt öffnen
 function showCompleteScreen() {
@@ -337,11 +346,15 @@ function initAlbumModal() {
 
 // Initialisierung nach DOM laden
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initAlbumModal);
+    document.addEventListener('DOMContentLoaded', () => {
+        loadPhotos();
+        initAlbumModal();
+        initDeviceOrientation();
+    });
 } else {
+    loadPhotos();
     initAlbumModal();
+    initDeviceOrientation();
 }
 
-// Initialisierung
-loadPhotos();
 
