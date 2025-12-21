@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const descriptionText = 'Mit Memories können Sie Ihre besonderen Momente in persönlichen Alben speichern und für immer bewahren.';
     
     // Typing-Effekt für Titel starten
-    typeText(titleElement, titleText, 100, () => {
+    typeText(titleElement, titleText, 200, () => {
         // Nach Titel: Typing-Effekt für Text starten
         setTimeout(() => {
             typeText(textElement, descriptionText, 30, () => {
