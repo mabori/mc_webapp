@@ -181,6 +181,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Initialisierung
-loadAlbums();
+// Initialisierung - Onboarding-Check
+document.addEventListener('DOMContentLoaded', () => {
+    const onboardingCompleted = localStorage.getItem('onboardingCompleted');
+    
+    if (!onboardingCompleted) {
+        // Onboarding noch nicht abgeschlossen - zur Landing-Page weiterleiten
+        window.location.href = 'onboarding.html';
+        return;
+    }
+    
+    // Onboarding abgeschlossen - Alben laden
+    loadAlbums();
+});
 

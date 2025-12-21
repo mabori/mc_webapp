@@ -75,11 +75,11 @@ body {
 /* Alben Container - Responsives Grid */
 .albums-container {
     display: none;
-    grid-template-columns: repeat(auto-fill, minmax(min(180px, 100%), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     width: 100%;
     max-width: 1400px;
     margin-top: 24px;
-    padding: 0;
+    padding: 24px;
     overflow-y: auto;
     overflow-x: hidden;
     flex: 1;
@@ -90,6 +90,10 @@ body {
     align-content: start;
     align-items: start;
     grid-auto-rows: min-content;
+    background-color: var(--bg-primary);
+    border-radius: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-light);
 }
 
 .albums-container::-webkit-scrollbar {
@@ -324,6 +328,9 @@ body {
     .albums-container {
         gap: 16px;
         margin-top: 20px;
+        padding: 20px;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        border-radius: 20px;
     }
 }
 
@@ -338,7 +345,9 @@ body {
     
     .albums-container {
         gap: 12px;
-        grid-template-columns: repeat(auto-fill, minmax(min(140px, 100%), 1fr));
+        padding: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        border-radius: 16px;
     }
 }
 
@@ -377,6 +386,13 @@ body {
     font-weight: 300;
     line-height: 1;
     user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
 }
 
 /* Mobile Anpassungen - Extra Abstand für Browser-UI */
@@ -430,6 +446,7 @@ body {
     position: relative;
     width: 100%;
     height: 100vh;
+    height: 100dvh; /* Dynamische Viewport-Höhe für mobile Browser */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -439,6 +456,7 @@ body {
 .camera-video {
     width: 100%;
     height: 100vh;
+    height: 100dvh; /* Dynamische Viewport-Höhe für mobile Browser */
     object-fit: cover;
     position: absolute;
     top: 0;
@@ -483,7 +501,7 @@ body {
     justify-content: center;
     align-items: center;
     padding: 40px 20px;
-    padding-bottom: max(40px, env(safe-area-inset-bottom, 40px) + 40px);
+    padding-bottom: max(50px, calc(env(safe-area-inset-bottom, 0px) + 50px));
     z-index: 100;
 }
 
@@ -597,7 +615,7 @@ body {
 /* Photo Stack Container */
 .photo-stack-container {
     position: fixed;
-    bottom: max(40px, env(safe-area-inset-bottom, 40px) + 40px);
+    bottom: max(50px, calc(env(safe-area-inset-bottom, 0px) + 50px));
     right: 24px;
     z-index: 90;
 }
@@ -669,7 +687,7 @@ body {
     }
     
     .photo-stack-container {
-        bottom: max(40px, env(safe-area-inset-bottom, 40px) + 40px);
+        bottom: max(50px, calc(env(safe-area-inset-bottom, 0px) + 50px));
         right: 20px;
     }
     
@@ -694,7 +712,7 @@ body {
 
 @media (max-width: 480px) {
     .photo-stack-container {
-        bottom: max(30px, env(safe-area-inset-bottom, 30px) + 30px);
+        bottom: max(40px, calc(env(safe-area-inset-bottom, 0px) + 40px));
         right: 16px;
     }
     
@@ -717,7 +735,7 @@ body {
     }
     
     .camera-controls {
-        padding-bottom: max(30px, env(safe-area-inset-bottom, 30px) + 30px);
+        padding-bottom: max(40px, calc(env(safe-area-inset-bottom, 0px) + 40px));
     }
 }
 
@@ -1091,12 +1109,10 @@ body {
     
     .albums-container {
         gap: 12px;
-        padding: 15px;
+        padding: 12px;
         max-height: calc(100vh - 180px);
-    }
-    
-    .album-card {
-        width: 120px;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        border-radius: 16px;
     }
     
     .album-name {
@@ -1105,6 +1121,251 @@ body {
     
     .album-location {
         font-size: 0.8rem;
+    }
+}
+
+/* ===== ONBOARDING-SEITE ===== */
+.onboarding-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 24px;
+    background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+}
+
+.onboarding-content {
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+}
+
+.onboarding-title {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--primary-text-color);
+    margin: 0;
+    letter-spacing: -0.03em;
+}
+
+.onboarding-text {
+    font-size: 1.125rem;
+    line-height: 1.6;
+    color: var(--secondary-text-color);
+    margin: 0;
+    max-width: 500px;
+}
+
+.onboarding-btn {
+    padding: 16px 48px;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-light);
+    background-color: var(--primary-color);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-md);
+}
+
+.onboarding-btn:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.onboarding-btn:active {
+    transform: translateY(0);
+}
+
+/* ===== BEREchtigungs-SEITE ===== */
+.permissions-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 24px;
+    background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+}
+
+.permissions-content {
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+}
+
+.permissions-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-text-color);
+    margin: 0;
+    letter-spacing: -0.03em;
+}
+
+.permissions-info {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.permission-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    text-align: left;
+    background-color: var(--bg-primary);
+    padding: 24px;
+    border-radius: 16px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-light);
+}
+
+.permission-icon {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.permission-text {
+    flex: 1;
+}
+
+.permission-text h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary-text-color);
+    margin: 0 0 8px 0;
+}
+
+.permission-text p {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--secondary-text-color);
+    margin: 0;
+}
+
+.permissions-btn {
+    padding: 16px 48px;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-light);
+    background-color: var(--primary-color);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-md);
+}
+
+.permissions-btn:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.permissions-btn:active {
+    transform: translateY(0);
+}
+
+/* Responsive Anpassungen für Onboarding */
+@media (max-width: 768px) {
+    .onboarding-title {
+        font-size: 2.5rem;
+    }
+    
+    .onboarding-text {
+        font-size: 1rem;
+    }
+    
+    .permissions-title {
+        font-size: 2rem;
+    }
+    
+    .permission-item {
+        padding: 20px;
+    }
+    
+    .permission-icon {
+        font-size: 2rem;
+    }
+    
+    .permission-text h3 {
+        font-size: 1.125rem;
+    }
+    
+    .permission-text p {
+        font-size: 0.9375rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .onboarding-container,
+    .permissions-container {
+        padding: 20px 16px;
+    }
+    
+    .onboarding-content,
+    .permissions-content {
+        gap: 24px;
+    }
+    
+    .onboarding-title {
+        font-size: 2rem;
+    }
+    
+    .onboarding-text {
+        font-size: 0.9375rem;
+    }
+    
+    .onboarding-btn,
+    .permissions-btn {
+        padding: 14px 40px;
+        font-size: 1rem;
+        width: 100%;
+        max-width: 280px;
+    }
+    
+    .permissions-title {
+        font-size: 1.75rem;
+    }
+    
+    .permissions-info {
+        gap: 16px;
+    }
+    
+    .permission-item {
+        padding: 16px;
+        flex-direction: column;
+        text-align: center;
+        align-items: center;
+    }
+    
+    .permission-icon {
+        font-size: 2rem;
+    }
+    
+    .permission-text {
+        text-align: center;
+    }
+    
+    .permission-text h3 {
+        font-size: 1rem;
+    }
+    
+    .permission-text p {
+        font-size: 0.875rem;
     }
 }
 
