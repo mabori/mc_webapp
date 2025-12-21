@@ -314,7 +314,7 @@ let currentTiltValue = 0;
 
 function handleDeviceOrientation(event) {
     // Prüfen ob gerade verarbeitet wird oder kein Bild vorhanden
-    if (isProcessing || !currentImage || photos.length === 0) {
+    if (isProcessing || !currentImage || photos.length === 0 || currentIndex >= photos.length) {
         return;
     }
     
@@ -328,7 +328,7 @@ function handleDeviceOrientation(event) {
     const tiltValue = gamma;
     currentTiltValue = tiltValue;
     
-    // Initialisierung - erste Messung
+    // Initialisierung - erste Messung (Referenzwert für neutral)
     if (lastBeta === null || lastBeta === undefined) {
         lastBeta = tiltValue;
         return;
@@ -341,7 +341,7 @@ function handleDeviceOrientation(event) {
         return;
     }
     
-    // Prüfen ob wirklich klar geneigt
+    // Prüfen ob wirklich klar geneigt (über dem Threshold)
     const tiltRight = tiltValue > tiltThreshold;
     const tiltLeft = tiltValue < -tiltThreshold;
     
@@ -351,8 +351,8 @@ function handleDeviceOrientation(event) {
         clearTimeout(tiltCheckTimeout);
         tiltCheckTimeout = setTimeout(() => {
             // Prüfen ob immer noch nach rechts geneigt (aktuelle Messung verwenden)
-            if (!isProcessing && currentTiltValue > tiltThreshold && currentImage) {
-                console.log('Device Orientation: Behalten (nach rechts geneigt)');
+            if (!isProcessing && currentTiltValue > tiltThreshold && currentImage && currentIndex < photos.length) {
+                console.log('Device Orientation: Behalten (nach rechts geneigt, Gamma:', currentTiltValue.toFixed(1), '°)');
                 makeDecision(true);
                 lastDecisionTime = Date.now();
                 lastBeta = currentTiltValue;
@@ -363,15 +363,15 @@ function handleDeviceOrientation(event) {
         clearTimeout(tiltCheckTimeout);
         tiltCheckTimeout = setTimeout(() => {
             // Prüfen ob immer noch nach links geneigt (aktuelle Messung verwenden)
-            if (!isProcessing && currentTiltValue < -tiltThreshold && currentImage) {
-                console.log('Device Orientation: Löschen (nach links geneigt)');
+            if (!isProcessing && currentTiltValue < -tiltThreshold && currentImage && currentIndex < photos.length) {
+                console.log('Device Orientation: Löschen (nach links geneigt, Gamma:', currentTiltValue.toFixed(1), '°)');
                 makeDecision(false);
                 lastDecisionTime = Date.now();
                 lastBeta = currentTiltValue;
             }
         }, 500);
     } else {
-        // Zurück in neutrale Position - Timeout löschen
+        // Zurück in neutrale Position - Timeout löschen (verhindert versehentliche Auslösung)
         clearTimeout(tiltCheckTimeout);
         lastBeta = tiltValue;
     }
@@ -395,15 +395,16 @@ function initDeviceOrientation() {
             try {
                 window.addEventListener('deviceorientation', handleDeviceOrientation, { passive: true });
                 console.log('✓ Device Orientation Event Listener aktiviert (iOS mit Berechtigung)');
+                console.log('ℹ Neigen Sie das Gerät nach rechts zum Behalten, nach links zum Löschen');
                 
-                // Reset lastBeta beim Start
+                // Reset lastBeta beim Start für neues Bild
                 lastBeta = null;
             } catch (error) {
                 console.error('Fehler beim Hinzufügen des Device Orientation Listeners:', error);
             }
         } else {
             console.warn('⚠ Device Orientation Berechtigung nicht erteilt. Status:', permissionStatus);
-            console.warn('Bitte Berechtigung beim Onboarding erteilen');
+            console.warn('Bitte Berechtigung beim Onboarding auf der Berechtigungsseite erteilen');
         }
     } else {
         // Für andere Browser/Systeme (Android, ältere iOS) direkt verwenden
@@ -411,8 +412,9 @@ function initDeviceOrientation() {
         try {
             window.addEventListener('deviceorientation', handleDeviceOrientation, { passive: true });
             console.log('✓ Device Orientation Event Listener aktiviert (keine Berechtigung benötigt)');
+            console.log('ℹ Neigen Sie das Gerät nach rechts zum Behalten, nach links zum Löschen');
             
-            // Reset lastBeta beim Start
+            // Reset lastBeta beim Start für neues Bild
             lastBeta = null;
         } catch (error) {
             console.error('Fehler beim Hinzufügen des Device Orientation Listeners:', error);
