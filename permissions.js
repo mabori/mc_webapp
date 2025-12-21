@@ -35,10 +35,16 @@ async function requestAllPermissions() {
         }
         
         // ===== 2. DEVICE ORIENTATION SENSOR BERECHTIGUNG =====
+        // Kurze Verzögerung zwischen den Berechtigungsanfragen für iOS
+        // Damit iOS Zeit hat, den ersten Dialog zu schließen
+        await new Promise(resolve => setTimeout(resolve, 300));
         await requestDeviceOrientationPermission();
         
         // ===== 3. ONBOARDING ABSCHLIESSEN =====
         localStorage.setItem('onboardingCompleted', 'true');
+        
+        // Kurze Verzögerung bevor weitergeleitet wird
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // Zur Homepage weiterleiten
         window.location.href = 'index.html';
@@ -62,17 +68,23 @@ async function requestDeviceOrientationPermission() {
     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
         try {
             // WICHTIG: requestPermission() muss aus einer Benutzerinteraktion heraus aufgerufen werden
+            // Da diese Funktion von einem Button-Click Event Handler aufgerufen wird, ist das erfüllt
             const permission = await DeviceOrientationEvent.requestPermission();
             
             if (permission === 'granted') {
                 localStorage.setItem('deviceOrientationPermission', 'granted');
                 return true;
-            } else {
+            } else if (permission === 'denied') {
                 localStorage.setItem('deviceOrientationPermission', 'denied');
+                return false;
+            } else {
+                // Unbekannter Status (z.B. 'prompt')
+                localStorage.setItem('deviceOrientationPermission', permission);
                 return false;
             }
         } catch (error) {
-            // Fehler bei der Anfrage
+            // Fehler bei der Anfrage - möglicherweise wurde die Berechtigung bereits verweigert
+            // oder die API funktioniert nicht wie erwartet
             localStorage.setItem('deviceOrientationPermission', 'denied');
             return false;
         }
