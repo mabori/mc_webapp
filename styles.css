@@ -463,6 +463,31 @@ body {
     position: absolute;
     top: 0;
     left: 0;
+    /* Keine Steuerelemente anzeigen */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+/* Native Video-Controls komplett verstecken */
+.camera-video::-webkit-media-controls {
+    display: none !important;
+}
+
+.camera-video::-webkit-media-controls-enclosure {
+    display: none !important;
+}
+
+.camera-video::-webkit-media-controls-panel {
+    display: none !important;
+}
+
+.camera-video::-webkit-media-controls-play-button {
+    display: none !important;
+}
+
+.camera-video::-webkit-media-controls-start-playback-button {
+    display: none !important;
 }
 
 /* Overlay für quadratische Ansicht */

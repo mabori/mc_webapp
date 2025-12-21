@@ -29,6 +29,8 @@ async function initCamera(facingMode = 'environment') {
         
         currentFacingMode = facingMode;
         video.srcObject = stream;
+        // Sicherstellen, dass keine Controls angezeigt werden
+        video.controls = false;
         
         // Video-Element auf quadratisches Format beschränken
         video.addEventListener('loadedmetadata', () => {
