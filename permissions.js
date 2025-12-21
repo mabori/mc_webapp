@@ -35,30 +35,7 @@ async function requestAllPermissions() {
         }
         
         // ===== 2. DEVICE ORIENTATION SENSOR BERECHTIGUNG =====
-        // Prüfen ob DeviceOrientationEvent unterstützt wird
-        if (typeof DeviceOrientationEvent !== 'undefined' && DeviceOrientationEvent !== null) {
-            // iOS 13+ Safari benötigt explizite Berechtigung
-            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-                try {
-                    const permission = await DeviceOrientationEvent.requestPermission();
-                    
-                    if (permission === 'granted') {
-                        localStorage.setItem('deviceOrientationPermission', 'granted');
-                    } else {
-                        localStorage.setItem('deviceOrientationPermission', 'denied');
-                    }
-                } catch (error) {
-                    // Fehler bei der Anfrage
-                    localStorage.setItem('deviceOrientationPermission', 'denied');
-                }
-            } else {
-                // Android Chrome / ältere iOS - keine explizite Berechtigung benötigt
-                localStorage.setItem('deviceOrientationPermission', 'granted');
-            }
-        } else {
-            // DeviceOrientationEvent nicht unterstützt
-            localStorage.setItem('deviceOrientationPermission', 'not_supported');
-        }
+        await requestDeviceOrientationPermission();
         
         // ===== 3. ONBOARDING ABSCHLIESSEN =====
         localStorage.setItem('onboardingCompleted', 'true');
@@ -70,5 +47,38 @@ async function requestAllPermissions() {
         // Bei Fehler trotzdem weiterleiten
         localStorage.setItem('onboardingCompleted', 'true');
         window.location.href = 'index.html';
+    }
+}
+
+// Device Orientation Berechtigung anfordern (kann auch von review.js verwendet werden)
+async function requestDeviceOrientationPermission() {
+    // Prüfen ob DeviceOrientationEvent unterstützt wird
+    if (typeof DeviceOrientationEvent === 'undefined' || DeviceOrientationEvent === null) {
+        localStorage.setItem('deviceOrientationPermission', 'not_supported');
+        return false;
+    }
+    
+    // iOS 13+ Safari benötigt explizite Berechtigung
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+        try {
+            // WICHTIG: requestPermission() muss aus einer Benutzerinteraktion heraus aufgerufen werden
+            const permission = await DeviceOrientationEvent.requestPermission();
+            
+            if (permission === 'granted') {
+                localStorage.setItem('deviceOrientationPermission', 'granted');
+                return true;
+            } else {
+                localStorage.setItem('deviceOrientationPermission', 'denied');
+                return false;
+            }
+        } catch (error) {
+            // Fehler bei der Anfrage
+            localStorage.setItem('deviceOrientationPermission', 'denied');
+            return false;
+        }
+    } else {
+        // Android Chrome / ältere iOS - keine explizite Berechtigung benötigt
+        localStorage.setItem('deviceOrientationPermission', 'granted');
+        return true;
     }
 }

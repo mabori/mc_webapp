@@ -24,7 +24,8 @@ let neutralTiltValue = null; // Neutraler Referenzwert für Neigung
 let tiltThreshold = 18; // Grad für klare Neigung
 let tiltCheckTimeout = null;
 let lastDecisionTime = 0;
-let decisionCooldown = 600; // Mindestzeit zwischen Entscheidungen (ms) - reduziert für bessere Reaktionszeit
+let decisionCooldown = 600; // Mindestzeit zwischen Entscheidungen (ms)
+let deviceOrientationListener = null; // Referenz zum Event Listener
 
 // Bilder aus localStorage laden
 function loadPhotos() {
@@ -120,7 +121,9 @@ function resetImagePosition() {
 
 // Entscheidung treffen (behalten = true, löschen = false)
 function makeDecision(keep) {
-    if (isProcessing || !currentImage || photos.length === 0 || currentIndex >= photos.length) return;
+    if (isProcessing || !currentImage || photos.length === 0 || currentIndex >= photos.length) {
+        return;
+    }
     
     isProcessing = true;
     
@@ -143,10 +146,10 @@ function makeDecision(keep) {
         showSwipeFeedback('delete');
     }
     
-    // Kurze Verzögerung für visuelles Feedback
+    // Nach Animation zum nächsten Bild wechseln
     setTimeout(() => {
-        showNextImage();
         isProcessing = false;
+        showNextImage();
     }, 300);
 }
 
@@ -252,9 +255,7 @@ function initSwipeGestures() {
         
         handleSwipe();
         isDragging = false;
-        
-        // Wenn Swipe nicht erfolgreich war, Feedback ausblenden
-        // (handleSwipe ruft resetImagePosition auf, was resetSwipeFeedback aufruft)
+        currentImage.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
     }, { passive: true });
 }
 
@@ -486,7 +487,7 @@ function handleDeviceOrientation(event) {
 }
 
 // Device Orientation Event Listener initialisieren
-function initDeviceOrientation() {
+async function initDeviceOrientation() {
     // Prüfen ob DeviceOrientationEvent unterstützt wird
     if (typeof DeviceOrientationEvent === 'undefined' || DeviceOrientationEvent === null) {
         return;
@@ -496,20 +497,28 @@ function initDeviceOrientation() {
     
     // Für iOS 13+ Safari benötigt explizite Berechtigung
     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-        // iOS 13+ Safari - Berechtigung wurde bereits beim Onboarding erteilt
+        // iOS 13+ Safari
         if (permissionStatus === 'granted') {
+            // Berechtigung wurde bereits erteilt - Event Listener hinzufügen
             try {
-                window.addEventListener('deviceorientation', handleDeviceOrientation, { passive: true });
+                deviceOrientationListener = handleDeviceOrientation.bind(this);
+                window.addEventListener('deviceorientation', deviceOrientationListener, { passive: true });
                 neutralTiltValue = null;
             } catch (error) {
                 // Fehler beim Hinzufügen des Listeners
             }
+        } else {
+            // Berechtigung wurde nicht erteilt oder nicht gesetzt
+            // Versuche Berechtigung nochmal anzufordern (falls möglich)
+            // Auf iOS muss requestPermission aus einer Benutzerinteraktion heraus aufgerufen werden
+            // Daher kann hier nur geprüft werden, ob bereits erteilt
         }
     } else {
         // Für andere Browser/Systeme (Android Chrome, ältere iOS) direkt verwenden
         // Berechtigung wird automatisch erteilt oder nicht benötigt
         try {
-            window.addEventListener('deviceorientation', handleDeviceOrientation, { passive: true });
+            deviceOrientationListener = handleDeviceOrientation.bind(this);
+            window.addEventListener('deviceorientation', deviceOrientationListener, { passive: true });
             neutralTiltValue = null;
             
             // Status auf 'granted' setzen falls noch nicht gesetzt
@@ -541,7 +550,11 @@ function showCompleteScreen() {
         imageContainer.classList.add('image-dimmed');
     }
     
-    // Device Orientation bleibt aktiv (Modal blockiert es nicht)
+    // Device Orientation Listener entfernen (nicht mehr benötigt)
+    if (deviceOrientationListener) {
+        window.removeEventListener('deviceorientation', deviceOrientationListener);
+        deviceOrientationListener = null;
+    }
     
     // Modal direkt öffnen (Overlay mit abgedunkeltem Hintergrund)
     const albumModal = document.getElementById('albumModal');
@@ -569,64 +582,61 @@ function initAlbumModal() {
         return;
     }
     
-    // Verwerfen Button - Zur Startseite zurückkehren ohne zu speichern
-    cancelBtn.addEventListener('click', () => {
-        // Captured Photos zurücksetzen
-        localStorage.removeItem('capturedPhotos');
-        localStorage.removeItem('keptPhotos');
-        
-        // Zur Startseite zurückkehren
-        window.location.href = 'index.html';
-    });
-    
     // Modal schließen bei Klick außerhalb
     albumModal.addEventListener('click', (e) => {
         if (e.target === albumModal) {
-            albumModal.style.display = 'none';
-            albumForm.reset();
+            closeAlbumModal();
         }
     });
     
-    // Album speichern
+    // Abbrechen Button - Album verwerfen
+    cancelBtn.addEventListener('click', () => {
+        // Alle temporären Daten löschen
+        localStorage.removeItem('capturedPhotos');
+        localStorage.removeItem('keptPhotos');
+        // Zur Homepage zurückkehren
+        window.location.href = 'index.html';
+    });
+    
+    // Form Submit - Album erstellen
     albumForm.addEventListener('submit', (e) => {
         e.preventDefault();
         
         const albumName = albumNameInput.value.trim();
         const albumLocation = albumLocationInput.value.trim();
         
-        if (!albumName || !albumLocation) {
-            alert('Bitte Name und Ort eingeben.');
+        if (!albumName) {
+            alert('Bitte geben Sie einen Namen für das Album ein.');
             return;
         }
         
-        // Bestehende Alben laden
-        let albums = JSON.parse(localStorage.getItem('albums') || '[]');
-        
-        // Neues Album erstellen
+        // Album erstellen und speichern
+        const albums = JSON.parse(localStorage.getItem('albums') || '[]');
         const newAlbum = {
             id: Date.now().toString(),
             name: albumName,
-            ort: albumLocation,
+            ort: albumLocation || 'Kein Ort angegeben',
             photos: keptPhotos,
             createdAt: new Date().toISOString()
         };
         
-        // Album hinzufügen
         albums.push(newAlbum);
-        
-        // In localStorage speichern
         localStorage.setItem('albums', JSON.stringify(albums));
         
-        // Captured Photos zurücksetzen
+        // Temporäre Daten löschen
         localStorage.removeItem('capturedPhotos');
         localStorage.removeItem('keptPhotos');
         
-        // Zur Startseite zurückkehren
+        // Zur Homepage zurückkehren
         window.location.href = 'index.html';
     });
 }
 
-// Hauptinitialisierung
+function closeAlbumModal() {
+    // Wird hier nicht verwendet, da das Modal nur durch Submit oder Cancel geschlossen wird
+}
+
+// Initialisierung
 function initReviewPage() {
     // 1. Bilder laden (initialisiert auch DOM-Elemente)
     loadPhotos();
@@ -651,5 +661,3 @@ if (document.readyState === 'loading') {
 } else {
     initReviewPage();
 }
-
-
