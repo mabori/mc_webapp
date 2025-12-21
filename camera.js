@@ -39,7 +39,6 @@ async function initCamera(facingMode = 'environment') {
             canvas.height = size;
         });
     } catch (error) {
-        console.error('Kamera-Fehler:', error);
         // Wenn die Berechtigung verweigert wurde, benutzerfreundliche Nachricht
         if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
             alert('Kamera-Berechtigung wurde verweigert. Bitte erlauben Sie den Zugriff in den Browsereinstellungen.');

@@ -36,7 +36,6 @@ function loadPhotos() {
     progressFill = document.getElementById('progressFill');
     
     if (!imageContainer || !currentImage || !swipeFeedback || !progressText || !progressFill) {
-        console.error('Review-Seite: DOM-Elemente nicht gefunden');
         return;
     }
     
@@ -55,17 +54,10 @@ function loadPhotos() {
             
             // Erstes Bild anzeigen
             currentImage.src = photos[0];
-            currentImage.onload = () => {
-                console.log('Bild geladen:', photos[0].substring(0, 50));
-            };
-            currentImage.onerror = () => {
-                console.error('Fehler beim Laden des Bildes');
-            };
             
             // Progress aktualisieren
             updateProgress();
         } catch (error) {
-            console.error('Fehler beim Laden der Fotos:', error);
             window.location.href = 'camera.html';
         }
     } else {
@@ -189,11 +181,8 @@ function resetSwipeFeedback() {
 // Touch Events für Swipe initialisieren
 function initSwipeGestures() {
     if (!imageContainer || !currentImage) {
-        console.error('Swipe-Gesten: DOM-Elemente nicht verfügbar');
         return;
     }
-    
-    console.log('✓ Swipe-Gesten initialisiert (Nach links/rechts wischen)');
     
     imageContainer.addEventListener('touchstart', (e) => {
         if (isProcessing) return;
@@ -282,7 +271,6 @@ function handleSwipe() {
     if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > swipeThreshold) {
         if (deltaX > 0) {
             // Nach rechts = behalten
-            console.log('Swipe: Behalten (nach rechts gewischt)');
             // Bild komplett nach rechts verschieben und ausblenden
             if (currentImage) {
                 currentImage.style.transform = `translateX(${window.innerWidth}px) rotate(15deg)`;
@@ -293,7 +281,6 @@ function handleSwipe() {
             }, 100);
         } else {
             // Nach links = löschen
-            console.log('Swipe: Löschen (nach links gewischt)');
             // Bild komplett nach links verschieben und ausblenden
             if (currentImage) {
                 currentImage.style.transform = `translateX(-${window.innerWidth}px) rotate(-15deg)`;
@@ -346,18 +333,14 @@ function initKeyboardControls() {
         // Pfeil nach rechts = behalten
         if (e.key === 'ArrowRight') {
             e.preventDefault();
-            console.log('Keyboard: Behalten (Pfeil rechts)');
             makeDecision(true);
         }
         // Pfeil nach links = löschen
         else if (e.key === 'ArrowLeft') {
             e.preventDefault();
-            console.log('Keyboard: Löschen (Pfeil links)');
             makeDecision(false);
         }
     });
-    
-    console.log('✓ Keyboard Controls initialisiert (Pfeil links/rechts)');
 }
 
 // Device Orientation für Neigung
@@ -427,7 +410,6 @@ function handleDeviceOrientation(event) {
             tiltCheckTimeout = setTimeout(() => {
                 // Nochmal prüfen ob immer noch geneigt
                 if (!isProcessing && currentTiltValue > tiltThreshold && currentImage && currentIndex < photos.length) {
-                    console.log('Device Orientation: Behalten (nach rechts geneigt, Gamma:', currentTiltValue.toFixed(1), '°)');
                     makeDecision(true);
                     lastDecisionTime = Date.now();
                     lastBeta = null; // Reset für nächstes Bild
@@ -464,7 +446,6 @@ function handleDeviceOrientation(event) {
             tiltCheckTimeout = setTimeout(() => {
                 // Nochmal prüfen ob immer noch geneigt
                 if (!isProcessing && currentTiltValue < -tiltThreshold && currentImage && currentIndex < photos.length) {
-                    console.log('Device Orientation: Löschen (nach links geneigt, Gamma:', currentTiltValue.toFixed(1), '°)');
                     makeDecision(false);
                     lastDecisionTime = Date.now();
                     lastBeta = null; // Reset für nächstes Bild
@@ -501,12 +482,10 @@ function handleDeviceOrientation(event) {
 // Device Orientation Event Listener initialisieren
 function initDeviceOrientation() {
     if (!window.DeviceOrientationEvent) {
-        console.log('⚠ DeviceOrientationEvent nicht verfügbar - Feature nicht unterstützt');
         return;
     }
     
     const permissionStatus = localStorage.getItem('deviceOrientationPermission');
-    console.log('Device Orientation Permission Status:', permissionStatus);
     
     // Prüfen ob Berechtigung benötigt wird (iOS 13+)
     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -515,22 +494,11 @@ function initDeviceOrientation() {
             // Berechtigung wurde bereits beim Onboarding erteilt - Event Listener hinzufügen
             try {
                 window.addEventListener('deviceorientation', handleDeviceOrientation, { passive: true });
-                console.log('✓ Device Orientation Event Listener aktiviert (iOS mit Berechtigung)');
-                console.log('ℹ Neigen Sie das Gerät nach rechts zum Behalten, nach links zum Löschen');
-                
                 // Reset lastBeta beim Start für neues Bild
                 lastBeta = null;
             } catch (error) {
-                console.error('Fehler beim Hinzufügen des Device Orientation Listeners:', error);
+                // Fehler beim Hinzufügen des Listeners - Feature nicht verfügbar
             }
-        } else if (permissionStatus === 'denied') {
-            console.warn('⚠ Device Orientation Berechtigung wurde verweigert');
-            console.warn('Bitte erlauben Sie den Zugriff auf den Neigungssensor in den Browser-Einstellungen');
-        } else if (permissionStatus === 'not_supported') {
-            console.warn('⚠ Device Orientation wird auf diesem Gerät nicht unterstützt');
-        } else {
-            console.warn('⚠ Device Orientation Berechtigung Status unbekannt:', permissionStatus);
-            console.warn('Bitte Berechtigung beim Onboarding auf der Berechtigungsseite erteilen');
         }
     } else {
         // Für andere Browser/Systeme (Android Chrome, ältere iOS) direkt verwenden
@@ -540,8 +508,6 @@ function initDeviceOrientation() {
             // permissionStatus kann null sein bei alten localStorage-Daten - trotzdem versuchen
             try {
                 window.addEventListener('deviceorientation', handleDeviceOrientation, { passive: true });
-                console.log('✓ Device Orientation Event Listener aktiviert (Android/ältere iOS)');
-                console.log('ℹ Neigen Sie das Gerät nach rechts zum Behalten, nach links zum Löschen');
                 
                 // Status auf 'granted' setzen falls noch nicht gesetzt
                 if (!permissionStatus) {
@@ -551,17 +517,15 @@ function initDeviceOrientation() {
                 // Reset lastBeta beim Start für neues Bild
                 lastBeta = null;
             } catch (error) {
-                console.error('Fehler beim Hinzufügen des Device Orientation Listeners:', error);
+                // Fehler beim Hinzufügen des Listeners - Feature nicht verfügbar
             }
         } else {
-            console.warn('⚠ Device Orientation Permission Status:', permissionStatus);
             // Trotzdem versuchen zu verwenden (für Android sollte es funktionieren)
             try {
                 window.addEventListener('deviceorientation', handleDeviceOrientation, { passive: true });
-                console.log('✓ Device Orientation Event Listener aktiviert (versucht trotz Status)');
                 lastBeta = null;
             } catch (error) {
-                console.error('Fehler beim Hinzufügen des Device Orientation Listeners:', error);
+                // Fehler beim Hinzufügen des Listeners - Feature nicht verfügbar
             }
         }
     }
@@ -611,7 +575,6 @@ function initAlbumModal() {
     const albumLocationInput = document.getElementById('albumLocation');
     
     if (!albumModal || !albumForm || !cancelBtn || !albumNameInput || !albumLocationInput) {
-        console.error('Modal-Elemente nicht gefunden');
         return;
     }
     
