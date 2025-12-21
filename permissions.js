@@ -9,7 +9,35 @@ document.addEventListener('DOMContentLoaded', () => {
         continueBtn.disabled = true;
         
         try {
-            // ===== 1. KAMERA-BERECHTIGUNG =====
+            // ===== 1. DEVICE ORIENTATION SENSOR BERECHTIGUNG (ZUERST) =====
+            // WICHTIG: Sensor-Berechtigung ZUERST anfordern, bevor Kamera
+            // Damit der Dialog definitiv erscheint
+            if (typeof DeviceOrientationEvent !== 'undefined' && 
+                DeviceOrientationEvent !== null && 
+                typeof DeviceOrientationEvent.requestPermission === 'function') {
+                
+                try {
+                    // Direkt im Event-Handler aufrufen - KEINE Verzögerung!
+                    const permission = await DeviceOrientationEvent.requestPermission();
+                    
+                    if (permission === 'granted') {
+                        localStorage.setItem('deviceOrientationPermission', 'granted');
+                    } else {
+                        localStorage.setItem('deviceOrientationPermission', 'denied');
+                    }
+                } catch (error) {
+                    localStorage.setItem('deviceOrientationPermission', 'denied');
+                }
+            } else {
+                // Android Chrome / ältere iOS / nicht unterstützt
+                if (typeof DeviceOrientationEvent === 'undefined' || DeviceOrientationEvent === null) {
+                    localStorage.setItem('deviceOrientationPermission', 'not_supported');
+                } else {
+                    localStorage.setItem('deviceOrientationPermission', 'granted');
+                }
+            }
+            
+            // ===== 2. KAMERA-BERECHTIGUNG =====
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: {
@@ -23,38 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 stream.getTracks().forEach(track => track.stop());
             } catch (error) {
                 // Kamera-Berechtigung wurde verweigert - trotzdem weitermachen
-            }
-            
-            // ===== 2. DEVICE ORIENTATION SENSOR BERECHTIGUNG =====
-            // Kurze Verzögerung zwischen den Berechtigungsanfragen für iOS
-            // Damit iOS Zeit hat, den ersten Dialog zu schließen
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            // WICHTIG FÜR iOS: requestPermission() muss direkt im Event-Handler-Kontext aufgerufen werden
-            // Prüfen ob DeviceOrientationEvent unterstützt wird
-            if (typeof DeviceOrientationEvent !== 'undefined' && DeviceOrientationEvent !== null) {
-                // iOS 13+ Safari benötigt explizite Berechtigung
-                if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    try {
-                        // Direkt im Event-Handler aufrufen für iOS Kompatibilität
-                        const permission = await DeviceOrientationEvent.requestPermission();
-                        
-                        if (permission === 'granted') {
-                            localStorage.setItem('deviceOrientationPermission', 'granted');
-                        } else {
-                            localStorage.setItem('deviceOrientationPermission', 'denied');
-                        }
-                    } catch (error) {
-                        // Fehler bei der Anfrage
-                        localStorage.setItem('deviceOrientationPermission', 'denied');
-                    }
-                } else {
-                    // Android Chrome / ältere iOS - keine explizite Berechtigung benötigt
-                    localStorage.setItem('deviceOrientationPermission', 'granted');
-                }
-            } else {
-                // DeviceOrientationEvent nicht unterstützt
-                localStorage.setItem('deviceOrientationPermission', 'not_supported');
             }
             
             // ===== 3. ONBOARDING ABSCHLIESSEN =====
