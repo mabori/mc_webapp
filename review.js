@@ -160,52 +160,60 @@ document.addEventListener('keydown', (e) => {
 let tiltCheckInterval = null;
 
 function handleDeviceOrientation(event) {
-    const beta = event.beta; // Neigung nach links/rechts (-180 bis 180)
+    // Beta: Neigung vor/zurück (-180 bis 180), ~0 = aufrecht
+    // Gamma: Neigung links/rechts (-90 bis 90), ~0 = gerade
+    const beta = event.beta;
+    const gamma = event.gamma;
+    
+    // Für Handys im Portrait-Modus verwenden wir Gamma (links/rechts Neigung)
+    // Beta wird für die Vor-/Zurück-Neigung verwendet
+    // Wir verwenden Gamma, da es die seitliche Neigung besser erfasst
+    const tiltValue = gamma !== null ? gamma : beta;
     
     if (lastBeta === null) {
-        lastBeta = beta;
+        lastBeta = tiltValue;
         return;
     }
     
     // Cooldown-Check: Verhindert zu schnelle Entscheidungen
     const now = Date.now();
     if (now - lastDecisionTime < decisionCooldown) {
-        lastBeta = beta;
+        lastBeta = tiltValue;
         return;
     }
     
-    // Beta: ~0 = aufrecht, negative Werte = nach links geneigt, positive = nach rechts geneigt
-    const tiltRight = beta > tiltThreshold;
-    const tiltLeft = beta < -tiltThreshold;
+    // Gamma: negative Werte = nach links geneigt, positive = nach rechts geneigt
+    // Beta als Fallback: ähnliche Logik
+    const tiltRight = tiltValue > tiltThreshold;
+    const tiltLeft = tiltValue < -tiltThreshold;
     
     // Nur reagieren wenn wirklich klar geneigt
-    // Zusätzliche Prüfung: Beta muss stabil in der Neigungszone sein
     if (tiltRight) {
         // Nach rechts = behalten
         clearTimeout(tiltCheckTimeout);
         tiltCheckTimeout = setTimeout(() => {
-            // Nur ausführen wenn immer noch geneigt
-            if (!isProcessing) {
+            // Prüfen ob immer noch in der richtigen Richtung geneigt
+            if (!isProcessing && tiltValue > tiltThreshold) {
                 makeDecision(true);
                 lastDecisionTime = Date.now();
             }
-        }, 200); // 200ms Verzögerung für stabilere Erkennung
+        }, 300); // 300ms Verzögerung für stabilere Erkennung
     } else if (tiltLeft) {
         // Nach links = löschen
         clearTimeout(tiltCheckTimeout);
         tiltCheckTimeout = setTimeout(() => {
-            // Nur ausführen wenn immer noch geneigt
-            if (!isProcessing) {
+            // Prüfen ob immer noch in der richtigen Richtung geneigt
+            if (!isProcessing && tiltValue < -tiltThreshold) {
                 makeDecision(false);
                 lastDecisionTime = Date.now();
             }
-        }, 200);
+        }, 300);
     } else {
         // Zurück in neutrale Position - Timeout löschen
         clearTimeout(tiltCheckTimeout);
     }
     
-    lastBeta = beta;
+    lastBeta = tiltValue;
 }
 
 // Device Orientation Event Listener
