@@ -21,10 +21,10 @@ let currentDragX = 0;
 
 // Device Orientation
 let lastBeta = null;
-let tiltThreshold = 20; // Grad für klare Neigung (reduziert für bessere Erkennung)
+let tiltThreshold = 18; // Grad für klare Neigung (reduziert für bessere Erkennung)
 let tiltCheckTimeout = null;
 let lastDecisionTime = 0;
-let decisionCooldown = 800; // Mindestzeit zwischen Entscheidungen (ms)
+let decisionCooldown = 600; // Mindestzeit zwischen Entscheidungen (ms) - reduziert für bessere Reaktionszeit
 
 // Bilder aus localStorage laden
 function loadPhotos() {
@@ -94,8 +94,9 @@ function showNextImage() {
     
     // Device Orientation zurücksetzen für neues Bild
     lastBeta = null;
-    if (typeof tiltDirection !== 'undefined') tiltDirection = null;
-    if (typeof tiltStartTime !== 'undefined') tiltStartTime = 0;
+    tiltDirection = null;
+    tiltStartTime = 0;
+    tiltActive = false;
     if (tiltCheckTimeout) {
         clearTimeout(tiltCheckTimeout);
         tiltCheckTimeout = null;
@@ -363,6 +364,7 @@ function initKeyboardControls() {
 let currentTiltValue = 0;
 let tiltStartTime = 0;
 let tiltDirection = null; // 'left' oder 'right'
+let tiltActive = false; // Ob gerade eine Neigung aktiv ist
 
 function handleDeviceOrientation(event) {
     // Prüfen ob gerade verarbeitet wird oder kein Bild vorhanden
@@ -380,16 +382,18 @@ function handleDeviceOrientation(event) {
     const tiltValue = gamma;
     currentTiltValue = tiltValue;
     
+    const now = Date.now();
+    
     // Initialisierung - erste Messung (Referenzwert für neutral)
     if (lastBeta === null || lastBeta === undefined) {
         lastBeta = tiltValue;
         tiltStartTime = 0;
         tiltDirection = null;
+        tiltActive = false;
         return;
     }
     
     // Cooldown-Check: Verhindert zu schnelle Entscheidungen
-    const now = Date.now();
     if (now - lastDecisionTime < decisionCooldown) {
         return;
     }
@@ -402,62 +406,94 @@ function handleDeviceOrientation(event) {
     if (tiltRight) {
         // Nach rechts = behalten (grün)
         if (tiltDirection !== 'right') {
+            // Richtung geändert - neuen Timer starten
+            if (tiltCheckTimeout) {
+                clearTimeout(tiltCheckTimeout);
+                tiltCheckTimeout = null;
+            }
             tiltDirection = 'right';
             tiltStartTime = now;
+            tiltActive = true;
             // Visuelles Feedback zeigen
-            currentImage.classList.remove('swipe-delete-active');
-            currentImage.classList.add('swipe-keep-active');
+            if (currentImage) {
+                currentImage.classList.remove('swipe-delete-active');
+                currentImage.classList.add('swipe-keep-active');
+            }
             updateSwipeFeedback('keep', Math.min(1, (tiltValue - tiltThreshold) / 20));
         }
         
-        // Entscheidung treffen nach 800ms stabiler Neigung
-        if (!tiltCheckTimeout && now - tiltStartTime > 800) {
+        // Entscheidung treffen nach 700ms stabiler Neigung (verkürzt für bessere Reaktionszeit)
+        if (!tiltCheckTimeout && now - tiltStartTime >= 700) {
             tiltCheckTimeout = setTimeout(() => {
+                // Nochmal prüfen ob immer noch geneigt
                 if (!isProcessing && currentTiltValue > tiltThreshold && currentImage && currentIndex < photos.length) {
                     console.log('Device Orientation: Behalten (nach rechts geneigt, Gamma:', currentTiltValue.toFixed(1), '°)');
                     makeDecision(true);
                     lastDecisionTime = Date.now();
                     lastBeta = null; // Reset für nächstes Bild
                     tiltDirection = null;
+                    tiltStartTime = 0;
+                    tiltActive = false;
+                    tiltCheckTimeout = null;
+                } else {
                     tiltCheckTimeout = null;
                 }
-            }, 100);
+            }, 50);
         }
     } else if (tiltLeft) {
         // Nach links = löschen (rot)
         if (tiltDirection !== 'left') {
+            // Richtung geändert - neuen Timer starten
+            if (tiltCheckTimeout) {
+                clearTimeout(tiltCheckTimeout);
+                tiltCheckTimeout = null;
+            }
             tiltDirection = 'left';
             tiltStartTime = now;
+            tiltActive = true;
             // Visuelles Feedback zeigen
-            currentImage.classList.remove('swipe-keep-active');
-            currentImage.classList.add('swipe-delete-active');
+            if (currentImage) {
+                currentImage.classList.remove('swipe-keep-active');
+                currentImage.classList.add('swipe-delete-active');
+            }
             updateSwipeFeedback('delete', Math.min(1, Math.abs(tiltValue + tiltThreshold) / 20));
         }
         
-        // Entscheidung treffen nach 800ms stabiler Neigung
-        if (!tiltCheckTimeout && now - tiltStartTime > 800) {
+        // Entscheidung treffen nach 700ms stabiler Neigung
+        if (!tiltCheckTimeout && now - tiltStartTime >= 700) {
             tiltCheckTimeout = setTimeout(() => {
+                // Nochmal prüfen ob immer noch geneigt
                 if (!isProcessing && currentTiltValue < -tiltThreshold && currentImage && currentIndex < photos.length) {
                     console.log('Device Orientation: Löschen (nach links geneigt, Gamma:', currentTiltValue.toFixed(1), '°)');
                     makeDecision(false);
                     lastDecisionTime = Date.now();
                     lastBeta = null; // Reset für nächstes Bild
                     tiltDirection = null;
+                    tiltStartTime = 0;
+                    tiltActive = false;
+                    tiltCheckTimeout = null;
+                } else {
                     tiltCheckTimeout = null;
                 }
-            }, 100);
+            }, 50);
         }
     } else {
-        // Zurück in neutrale Position - Timeout löschen und Feedback zurücksetzen
-        if (tiltCheckTimeout) {
-            clearTimeout(tiltCheckTimeout);
-            tiltCheckTimeout = null;
+        // Zurück in neutrale Position
+        if (tiltActive) {
+            // Timeout löschen wenn noch aktiv
+            if (tiltCheckTimeout) {
+                clearTimeout(tiltCheckTimeout);
+                tiltCheckTimeout = null;
+            }
+            tiltDirection = null;
+            tiltStartTime = 0;
+            tiltActive = false;
+            // Visuelles Feedback zurücksetzen
+            if (currentImage) {
+                currentImage.classList.remove('swipe-keep-active', 'swipe-delete-active');
+            }
+            resetSwipeFeedback();
         }
-        tiltDirection = null;
-        tiltStartTime = 0;
-        // Visuelles Feedback zurücksetzen
-        currentImage.classList.remove('swipe-keep-active', 'swipe-delete-active');
-        resetSwipeFeedback();
         lastBeta = tiltValue;
     }
 }
