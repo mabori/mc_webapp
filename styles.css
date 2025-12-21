@@ -354,35 +354,39 @@ body {
 /* Floating Action Button (FAB) */
 .fab-button {
     position: fixed;
-    bottom: 24px;
-    right: 24px;
-    width: 56px;
-    height: 56px;
+    bottom: max(24px, calc(env(safe-area-inset-bottom, 0px) + 24px));
+    right: max(24px, calc(env(safe-area-inset-right, 0px) + 24px));
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
-    background-color: var(--primary-color);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
     color: var(--text-light);
     border: none;
     cursor: pointer;
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 8px 24px rgba(74, 144, 226, 0.35), 
+                0 4px 8px rgba(0, 0, 0, 0.15);
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1000;
 }
 
 .fab-button:hover {
-    background-color: var(--primary-hover);
-    transform: scale(1.1);
-    box-shadow: 0 12px 28px rgba(74, 144, 226, 0.4);
+    background: linear-gradient(135deg, var(--primary-hover), var(--primary-color));
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 12px 32px rgba(74, 144, 226, 0.45), 
+                0 6px 12px rgba(0, 0, 0, 0.2);
 }
 
 .fab-button:active {
-    transform: scale(0.95);
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3), 
+                0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .fab-icon {
-    font-size: 2rem;
+    font-size: 2.25rem;
     font-weight: 300;
     line-height: 1;
     user-select: none;
@@ -398,30 +402,28 @@ body {
 /* Mobile Anpassungen - Extra Abstand für Browser-UI */
 @media (max-width: 768px) {
     .fab-button {
-        bottom: max(24px, env(safe-area-inset-bottom, 24px) + 24px);
-        right: max(24px, env(safe-area-inset-right, 24px) + 24px);
-        width: 56px;
-        height: 56px;
+        bottom: max(24px, calc(env(safe-area-inset-bottom, 0px) + 24px));
+        right: max(24px, calc(env(safe-area-inset-right, 0px) + 24px));
+        width: 60px;
+        height: 60px;
     }
     
     .fab-icon {
-        font-size: 1.75rem;
+        font-size: 2rem;
     }
 }
 
 /* Extra Sicherheit für kleine Bildschirme */
 @media (max-width: 480px) {
     .fab-button {
-        bottom: 80px; /* Genügend Abstand für Browser-UI */
+        bottom: max(24px, calc(env(safe-area-inset-bottom, 0px) + 24px));
+        right: max(24px, calc(env(safe-area-inset-right, 0px) + 24px));
         width: 56px;
         height: 56px;
     }
-}
-
-/* Sicherstellen, dass der Button auf sehr kleinen Bildschirmen sichtbar bleibt */
-@media (max-height: 600px) {
-    .fab-button {
-        bottom: 70px;
+    
+    .fab-icon {
+        font-size: 1.875rem;
     }
 }
 
