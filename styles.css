@@ -1413,6 +1413,38 @@ body {
     flex: 1;
 }
 
+.permission-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 12px;
+}
+
+.permission-status {
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.permission-status.pending {
+    background-color: var(--bg-accent);
+    color: var(--secondary-text-color);
+}
+
+.permission-status.granted {
+    background-color: rgba(40, 167, 69, 0.1);
+    color: var(--success-color);
+}
+
+.permission-status.denied {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: var(--error-color);
+}
+
 .permission-text h3 {
     font-size: 1.25rem;
     font-weight: 600;
@@ -1529,10 +1561,23 @@ body {
     
     .permission-text {
         text-align: center;
+        width: 100%;
+    }
+    
+    .permission-header {
+        flex-direction: column;
+        gap: 8px;
+        align-items: center;
+    }
+    
+    .permission-status {
+        font-size: 0.75rem;
+        padding: 3px 10px;
     }
     
     .permission-text h3 {
         font-size: 1rem;
+        margin-bottom: 8px;
     }
     
     .permission-text p {
