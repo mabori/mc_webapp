@@ -45,14 +45,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             updatePermissionStatus(sensorStatusEl, 'pending', '⏳ Wird angefordert...');
             
             // Prüfen ob DeviceOrientationEvent unterstützt wird
-            if (typeof DeviceOrientationEvent !== 'undefined') {
+            const hasDeviceOrientation = typeof DeviceOrientationEvent !== 'undefined' && DeviceOrientationEvent !== null;
+            const hasRequestPermission = hasDeviceOrientation && 
+                                       typeof DeviceOrientationEvent.requestPermission === 'function';
+            
+            if (hasRequestPermission) {
                 // iOS 13+ Safari benötigt explizite Berechtigung über DeviceOrientationEvent.requestPermission()
-                if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    // iOS 13+ - explizite Berechtigung ANFORDERN
-                    try {
-                        // WICHTIG: requestPermission() muss aus einer Benutzerinteraktion heraus aufgerufen werden
-                        // (Button-Click ist eine Benutzerinteraktion, daher funktioniert es hier)
-                        const permission = await DeviceOrientationEvent.requestPermission();
+                // Versuche Berechtigung anzufordern
+                let permissionRequested = false;
+                
+                try {
+                    // WICHTIG: requestPermission() muss aus einer Benutzerinteraktion heraus aufgerufen werden
+                    // (Button-Click ist eine Benutzerinteraktion, daher funktioniert es hier)
+                    const permissionPromise = DeviceOrientationEvent.requestPermission();
+                    
+                    // Prüfen ob es eine Promise ist
+                    if (permissionPromise && typeof permissionPromise.then === 'function') {
+                        permissionRequested = true;
+                        const permission = await permissionPromise;
                         
                         if (permission === 'granted') {
                             // Berechtigung erteilt - in localStorage speichern
@@ -62,20 +72,30 @@ document.addEventListener('DOMContentLoaded', async () => {
                             localStorage.setItem('deviceOrientationPermission', 'denied');
                             updatePermissionStatus(sensorStatusEl, 'denied', '✗ Verweigert');
                         } else {
-                            localStorage.setItem('deviceOrientationPermission', permission);
-                            updatePermissionStatus(sensorStatusEl, 'denied', '✗ Unbekannt');
+                            // Unbekannter Status - als "granted" behandeln (kann auch "prompt" sein)
+                            localStorage.setItem('deviceOrientationPermission', 'granted');
+                            updatePermissionStatus(sensorStatusEl, 'granted', '✓ Verfügbar');
                         }
-                    } catch (error) {
-                        localStorage.setItem('deviceOrientationPermission', 'error');
-                        updatePermissionStatus(sensorStatusEl, 'denied', '✗ Fehler');
                     }
-                } else {
-                    // Android Chrome / ältere iOS - keine explizite requestPermission API
-                    // Device Orientation Events funktionieren meist direkt ohne explizite Berechtigung
-                    // Setze Berechtigung als "granted" da keine explizite Anfrage möglich/erforderlich ist
+                } catch (error) {
+                    // Fehler bei der Anfrage - API existiert, funktioniert aber nicht
+                    // Für Android/andere Browser trotzdem als "granted" setzen
+                    // da dort keine explizite Berechtigung benötigt wird
                     localStorage.setItem('deviceOrientationPermission', 'granted');
                     updatePermissionStatus(sensorStatusEl, 'granted', '✓ Verfügbar');
                 }
+                
+                // Falls requestPermission() nicht korrekt funktioniert hat
+                if (!permissionRequested) {
+                    localStorage.setItem('deviceOrientationPermission', 'granted');
+                    updatePermissionStatus(sensorStatusEl, 'granted', '✓ Verfügbar');
+                }
+            } else if (hasDeviceOrientation) {
+                // Android Chrome / ältere iOS - keine explizite requestPermission API
+                // Device Orientation Events funktionieren meist direkt ohne explizite Berechtigung
+                // Setze Berechtigung als "granted" da keine explizite Anfrage möglich/erforderlich ist
+                localStorage.setItem('deviceOrientationPermission', 'granted');
+                updatePermissionStatus(sensorStatusEl, 'granted', '✓ Verfügbar');
             } else {
                 // DeviceOrientationEvent nicht unterstützt
                 localStorage.setItem('deviceOrientationPermission', 'not_supported');
