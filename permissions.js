@@ -21,29 +21,48 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             
             // 2. Device Orientation Berechtigung anfordern
+            // WICHTIG: Diese Berechtigung muss explizit angefordert werden!
             // iOS 13+ Safari benötigt explizite Berechtigung über DeviceOrientationEvent.requestPermission()
-            // Android Chrome unterstützt dies nicht und benötigt keine explizite Berechtigung
+            // Android Chrome benötigt keine explizite Berechtigung, aber wir versuchen es trotzdem
+            
+            let orientationPermissionGranted = false;
+            
+            // Prüfen ob DeviceOrientationEvent unterstützt wird
             if (typeof DeviceOrientationEvent !== 'undefined') {
                 // Prüfen ob requestPermission API vorhanden ist (iOS 13+)
                 if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    // iOS 13+ - explizite Berechtigung anfordern
+                    // iOS 13+ - explizite Berechtigung ANFORDERN (wichtig: muss aus Benutzerinteraktion kommen!)
                     try {
                         console.log('Fordere Device Orientation Berechtigung an (iOS 13+)...');
+                        console.log('Bitte erlauben Sie den Zugriff auf den Neigungssensor im erscheinenden Dialog');
+                        
+                        // WICHTIG: requestPermission() muss aus einer Benutzerinteraktion heraus aufgerufen werden
+                        // (Button-Click ist eine Benutzerinteraktion, daher funktioniert es hier)
                         const permission = await DeviceOrientationEvent.requestPermission();
                         console.log('Device Orientation Berechtigung Status:', permission);
                         
                         if (permission === 'granted') {
                             // Berechtigung erteilt - in localStorage speichern
                             localStorage.setItem('deviceOrientationPermission', 'granted');
+                            orientationPermissionGranted = true;
                             console.log('✓ Device Orientation Berechtigung erteilt (iOS)');
                             
                             // Event Listener testweise hinzufügen um zu prüfen ob es funktioniert
-                            window.addEventListener('deviceorientation', () => {
-                                console.log('✓ Device Orientation Event funktioniert');
-                            }, { once: true, passive: true });
+                            const testListener = (event) => {
+                                if (event && (event.gamma !== null || event.beta !== null)) {
+                                    console.log('✓ Device Orientation Sensor funktioniert! Gamma:', event.gamma?.toFixed(1), 'Beta:', event.beta?.toFixed(1));
+                                }
+                            };
+                            window.addEventListener('deviceorientation', testListener, { once: true, passive: true });
+                            
+                            // Listener nach 2 Sekunden entfernen falls kein Event kommt
+                            setTimeout(() => {
+                                window.removeEventListener('deviceorientation', testListener);
+                            }, 2000);
                         } else if (permission === 'denied') {
-                            console.warn('⚠ Device Orientation Berechtigung verweigert (iOS)');
+                            console.warn('⚠ Device Orientation Berechtigung wurde vom Nutzer verweigert (iOS)');
                             localStorage.setItem('deviceOrientationPermission', 'denied');
+                            alert('Die Berechtigung für den Neigungssensor wurde verweigert. Sie können diese später in den Safari-Einstellungen ändern.');
                         } else {
                             console.warn('⚠ Device Orientation Berechtigung: unbekannter Status:', permission);
                             localStorage.setItem('deviceOrientationPermission', permission);
@@ -51,23 +70,32 @@ document.addEventListener('DOMContentLoaded', async () => {
                     } catch (error) {
                         console.error('Fehler bei Device Orientation Berechtigung (iOS):', error);
                         localStorage.setItem('deviceOrientationPermission', 'error');
+                        alert('Fehler beim Anfordern der Neigungssensor-Berechtigung. Bitte versuchen Sie es erneut.');
                     }
                 } else {
-                    // Android Chrome / ältere iOS - keine explizite Berechtigung benötigt
-                    // Device Orientation Events funktionieren direkt
-                    console.log('Device Orientation: Keine explizite Berechtigung benötigt (Android/ältere iOS)');
+                    // Android Chrome / ältere iOS - keine explizite Berechtigung API vorhanden
+                    // Device Orientation Events sollten direkt funktionieren (aber können durch Browser-Einstellungen blockiert sein)
+                    console.log('Device Orientation: requestPermission API nicht verfügbar (Android/ältere iOS)');
+                    console.log('Versuche Sensor-Zugriff - Browser erlaubt oder blockiert automatisch');
                     localStorage.setItem('deviceOrientationPermission', 'granted');
+                    orientationPermissionGranted = true;
                     
                     // Testweise Event Listener hinzufügen um zu prüfen ob Sensor verfügbar ist
-                    const testListener = () => {
-                        console.log('✓ Device Orientation Sensor verfügbar');
-                        window.removeEventListener('deviceorientation', testListener);
+                    const testListener = (event) => {
+                        if (event && (event.gamma !== null || event.beta !== null)) {
+                            console.log('✓ Device Orientation Sensor verfügbar (Android/ältere iOS)');
+                        }
                     };
                     window.addEventListener('deviceorientation', testListener, { once: true, passive: true });
+                    
+                    // Listener nach 3 Sekunden entfernen
+                    setTimeout(() => {
+                        window.removeEventListener('deviceorientation', testListener);
+                    }, 3000);
                 }
             } else {
                 // DeviceOrientationEvent nicht unterstützt
-                console.warn('⚠ DeviceOrientationEvent wird nicht unterstützt');
+                console.warn('⚠ DeviceOrientationEvent wird von diesem Browser nicht unterstützt');
                 localStorage.setItem('deviceOrientationPermission', 'not_supported');
             }
             
