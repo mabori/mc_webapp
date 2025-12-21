@@ -861,6 +861,16 @@ body {
     -webkit-touch-callout: none;
     background-color: var(--bg-secondary);
     border: 1px solid var(--border-color);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    will-change: transform, opacity;
+}
+
+.review-image.swipe-keep-active {
+    box-shadow: 0 0 30px rgba(40, 167, 69, 0.5);
+}
+
+.review-image.swipe-delete-active {
+    box-shadow: 0 0 30px rgba(220, 53, 69, 0.5);
 }
 
 .swipe-feedback {
@@ -876,6 +886,7 @@ body {
     z-index: 10;
     opacity: 0;
     transition: opacity 0.2s ease;
+    will-change: opacity;
 }
 
 .swipe-feedback.swipe-keep {

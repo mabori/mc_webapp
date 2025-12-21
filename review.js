@@ -16,6 +16,8 @@ let touchStartY = 0;
 let touchEndX = 0;
 let touchEndY = 0;
 let swipeThreshold = 50; // Minimale Swipe-Distanz
+let isDragging = false;
+let currentDragX = 0;
 
 // Device Orientation
 let lastBeta = null;
@@ -88,6 +90,9 @@ function updateProgress() {
 function showNextImage() {
     if (!currentImage) return;
     
+    // Bild zurücksetzen
+    resetImagePosition();
+    
     currentIndex++;
     if (currentIndex < photos.length) {
         currentImage.src = photos[currentIndex];
@@ -97,6 +102,16 @@ function showNextImage() {
         // Alle Bilder durchgegangen
         showCompleteScreen();
     }
+}
+
+// Bild-Position zurücksetzen
+function resetImagePosition() {
+    if (!currentImage) return;
+    currentImage.style.transform = '';
+    currentImage.style.opacity = '1';
+    currentImage.classList.remove('swipe-keep-active', 'swipe-delete-active');
+    isDragging = false;
+    currentDragX = 0;
 }
 
 // Entscheidung treffen (behalten = true, löschen = false)
@@ -122,7 +137,7 @@ function makeDecision(keep) {
     }, 300);
 }
 
-// Swipe Feedback anzeigen
+// Swipe Feedback anzeigen (nach Entscheidung)
 function showSwipeFeedback(action) {
     if (!swipeFeedback) return;
     
@@ -131,9 +146,11 @@ function showSwipeFeedback(action) {
     if (action === 'keep') {
         swipeFeedback.classList.add('swipe-keep');
         swipeFeedback.textContent = '✓ Behalten';
+        swipeFeedback.style.opacity = '1';
     } else {
         swipeFeedback.classList.add('swipe-delete');
         swipeFeedback.textContent = '✗ Löschen';
+        swipeFeedback.style.opacity = '1';
     }
     
     setTimeout(() => {
@@ -146,23 +163,68 @@ function resetSwipeFeedback() {
     
     swipeFeedback.classList.remove('swipe-keep', 'swipe-delete');
     swipeFeedback.textContent = '';
+    swipeFeedback.style.opacity = '0';
 }
 
 // Touch Events für Swipe initialisieren
 function initSwipeGestures() {
-    if (!imageContainer) return;
+    if (!imageContainer || !currentImage) return;
     
     imageContainer.addEventListener('touchstart', (e) => {
         if (isProcessing) return;
         touchStartX = e.changedTouches[0].screenX;
         touchStartY = e.changedTouches[0].screenY;
+        isDragging = true;
+        currentImage.style.transition = 'none'; // Keine Transition während des Ziehens
+    }, { passive: true });
+
+    imageContainer.addEventListener('touchmove', (e) => {
+        if (!isDragging || isProcessing) return;
+        
+        const touchX = e.changedTouches[0].screenX;
+        const touchY = e.changedTouches[0].screenY;
+        const deltaX = touchX - touchStartX;
+        const deltaY = touchY - touchStartY;
+        
+        // Nur horizontal verschieben wenn Swipe hauptsächlich horizontal ist
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+            currentDragX = deltaX;
+            const maxDrag = window.innerWidth * 0.5; // Maximale Drag-Distanz
+            const normalizedDrag = Math.max(-maxDrag, Math.min(maxDrag, deltaX));
+            
+            // Bild verschieben
+            currentImage.style.transform = `translateX(${normalizedDrag}px) rotate(${normalizedDrag * 0.1}deg)`;
+            
+            // Opacity basierend auf Drag-Distanz
+            const opacity = 1 - Math.abs(normalizedDrag) / maxDrag * 0.5;
+            currentImage.style.opacity = opacity;
+            
+            // Visuelles Feedback basierend auf Richtung
+            if (deltaX > 0) {
+                // Nach rechts = behalten (grün)
+                currentImage.classList.remove('swipe-delete-active');
+                currentImage.classList.add('swipe-keep-active');
+                updateSwipeFeedback('keep', Math.abs(normalizedDrag) / maxDrag);
+            } else {
+                // Nach links = löschen (rot)
+                currentImage.classList.remove('swipe-keep-active');
+                currentImage.classList.add('swipe-delete-active');
+                updateSwipeFeedback('delete', Math.abs(normalizedDrag) / maxDrag);
+            }
+        }
     }, { passive: true });
 
     imageContainer.addEventListener('touchend', (e) => {
-        if (isProcessing) return;
+        if (!isDragging || isProcessing) return;
+        
         touchEndX = e.changedTouches[0].screenX;
         touchEndY = e.changedTouches[0].screenY;
+        
+        // Transition wieder aktivieren
+        currentImage.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+        
         handleSwipe();
+        isDragging = false;
     }, { passive: true });
 }
 
@@ -174,11 +236,46 @@ function handleSwipe() {
     if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > swipeThreshold) {
         if (deltaX > 0) {
             // Nach rechts = behalten
-            makeDecision(true);
+            // Bild komplett nach rechts verschieben und ausblenden
+            if (currentImage) {
+                currentImage.style.transform = `translateX(${window.innerWidth}px) rotate(15deg)`;
+                currentImage.style.opacity = '0';
+            }
+            setTimeout(() => {
+                makeDecision(true);
+            }, 100);
         } else {
             // Nach links = löschen
-            makeDecision(false);
+            // Bild komplett nach links verschieben und ausblenden
+            if (currentImage) {
+                currentImage.style.transform = `translateX(-${window.innerWidth}px) rotate(-15deg)`;
+                currentImage.style.opacity = '0';
+            }
+            setTimeout(() => {
+                makeDecision(false);
+            }, 100);
         }
+    } else {
+        // Swipe nicht weit genug - Bild zurücksetzen
+        resetImagePosition();
+        currentImage.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+    }
+}
+
+// Swipe Feedback während des Ziehens aktualisieren
+function updateSwipeFeedback(action, intensity) {
+    if (!swipeFeedback) return;
+    
+    swipeFeedback.classList.remove('swipe-keep', 'swipe-delete');
+    
+    if (action === 'keep') {
+        swipeFeedback.classList.add('swipe-keep');
+        swipeFeedback.textContent = '✓ Behalten';
+        swipeFeedback.style.opacity = Math.min(1, intensity * 2);
+    } else {
+        swipeFeedback.classList.add('swipe-delete');
+        swipeFeedback.textContent = '✗ Löschen';
+        swipeFeedback.style.opacity = Math.min(1, intensity * 2);
     }
 }
 
