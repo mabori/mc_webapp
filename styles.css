@@ -1263,6 +1263,7 @@ body {
     color: var(--primary-text-color);
     margin: 0;
     letter-spacing: -0.03em;
+    min-height: 1.2em; /* Verhindert Layout-Shift während Typing */
 }
 
 .onboarding-text {
@@ -1271,6 +1272,7 @@ body {
     color: var(--secondary-text-color);
     margin: 0;
     max-width: 500px;
+    min-height: 4.8em; /* Verhindert Layout-Shift während Typing (3 Zeilen * 1.6 line-height) */
 }
 
 .onboarding-btn {
