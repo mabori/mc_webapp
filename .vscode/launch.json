@@ -9,7 +9,7 @@
             "type": "chrome",
             "request": "launch",
             "name": "Launch Chrome",
-            "file": "${workspaceFolder}/index.html",
+            "file": "${workspaceFolder}/onboarding.html",
             "webRoot": "${workspaceFolder}"
         }
     ]
