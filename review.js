@@ -21,11 +21,10 @@ let currentDragX = 0;
 
 // Device Orientation
 let lastBeta = null;
-let tiltThreshold = 25; // Grad für klare Neigung (höherer Wert = weniger empfindlich)
-let tiltDeadzone = 8; // Totzone, um zu schnelle Reaktionen zu vermeiden
+let tiltThreshold = 20; // Grad für klare Neigung (reduziert für bessere Erkennung)
 let tiltCheckTimeout = null;
 let lastDecisionTime = 0;
-let decisionCooldown = 500; // Mindestzeit zwischen Entscheidungen (ms)
+let decisionCooldown = 800; // Mindestzeit zwischen Entscheidungen (ms)
 
 // Bilder aus localStorage laden
 function loadPhotos() {
@@ -95,6 +94,12 @@ function showNextImage() {
     
     // Device Orientation zurücksetzen für neues Bild
     lastBeta = null;
+    if (typeof tiltDirection !== 'undefined') tiltDirection = null;
+    if (typeof tiltStartTime !== 'undefined') tiltStartTime = 0;
+    if (tiltCheckTimeout) {
+        clearTimeout(tiltCheckTimeout);
+        tiltCheckTimeout = null;
+    }
     
     currentIndex++;
     if (currentIndex < photos.length) {
@@ -115,6 +120,8 @@ function resetImagePosition() {
     currentImage.classList.remove('swipe-keep-active', 'swipe-delete-active');
     isDragging = false;
     currentDragX = 0;
+    // Feedback auch zurücksetzen
+    resetSwipeFeedback();
 }
 
 // Entscheidung treffen (behalten = true, löschen = false)
@@ -193,6 +200,8 @@ function initSwipeGestures() {
         touchStartY = e.changedTouches[0].screenY;
         isDragging = true;
         currentImage.style.transition = 'none'; // Keine Transition während des Ziehens
+        // Feedback beim Start ausblenden (wird beim Wischen wieder angezeigt)
+        resetSwipeFeedback();
     }, { passive: true });
 
     imageContainer.addEventListener('touchmove', (e) => {
@@ -216,23 +225,33 @@ function initSwipeGestures() {
             const opacity = 1 - Math.abs(normalizedDrag) / maxDrag * 0.5;
             currentImage.style.opacity = opacity;
             
-            // Visuelles Feedback basierend auf Richtung
+            // Visuelles Feedback basierend auf Richtung - nur anzeigen wenn wirklich geschoben wird
             if (deltaX > 0) {
                 // Nach rechts = behalten (grün)
                 currentImage.classList.remove('swipe-delete-active');
                 currentImage.classList.add('swipe-keep-active');
                 updateSwipeFeedback('keep', Math.abs(normalizedDrag) / maxDrag);
-            } else {
+            } else if (deltaX < 0) {
                 // Nach links = löschen (rot)
                 currentImage.classList.remove('swipe-keep-active');
                 currentImage.classList.add('swipe-delete-active');
                 updateSwipeFeedback('delete', Math.abs(normalizedDrag) / maxDrag);
             }
+        } else {
+            // Nicht horizontal genug - Feedback ausblenden, Bild in Default-Position
+            currentImage.style.transform = '';
+            currentImage.style.opacity = '1';
+            currentImage.classList.remove('swipe-keep-active', 'swipe-delete-active');
+            resetSwipeFeedback();
         }
     }, { passive: true });
 
     imageContainer.addEventListener('touchend', (e) => {
-        if (!isDragging || isProcessing) return;
+        if (!isDragging || isProcessing) {
+            // Wenn nicht mehr gewischt wird, Feedback ausblenden
+            resetSwipeFeedback();
+            return;
+        }
         
         touchEndX = e.changedTouches[0].screenX;
         touchEndY = e.changedTouches[0].screenY;
@@ -242,6 +261,9 @@ function initSwipeGestures() {
         
         handleSwipe();
         isDragging = false;
+        
+        // Wenn Swipe nicht erfolgreich war, Feedback ausblenden
+        // (handleSwipe ruft resetImagePosition auf, was resetSwipeFeedback aufruft)
     }, { passive: true });
 }
 
@@ -295,14 +317,20 @@ function updateSwipeFeedback(action, intensity) {
     
     swipeFeedback.classList.remove('swipe-keep', 'swipe-delete');
     
-    if (action === 'keep') {
-        swipeFeedback.classList.add('swipe-keep');
-        swipeFeedback.textContent = '✓ Behalten';
-        swipeFeedback.style.opacity = Math.min(1, intensity * 2);
+    // Nur anzeigen wenn wirklich geschoben wird (intensity > 0)
+    if (intensity > 0) {
+        if (action === 'keep') {
+            swipeFeedback.classList.add('swipe-keep');
+            swipeFeedback.textContent = '✓ Behalten';
+            swipeFeedback.style.opacity = Math.min(1, intensity * 2);
+        } else if (action === 'delete') {
+            swipeFeedback.classList.add('swipe-delete');
+            swipeFeedback.textContent = '✗ Löschen';
+            swipeFeedback.style.opacity = Math.min(1, intensity * 2);
+        }
     } else {
-        swipeFeedback.classList.add('swipe-delete');
-        swipeFeedback.textContent = '✗ Löschen';
-        swipeFeedback.style.opacity = Math.min(1, intensity * 2);
+        // Nicht geschoben - Feedback ausblenden
+        resetSwipeFeedback();
     }
 }
 
@@ -333,6 +361,8 @@ function initKeyboardControls() {
 
 // Device Orientation für Neigung
 let currentTiltValue = 0;
+let tiltStartTime = 0;
+let tiltDirection = null; // 'left' oder 'right'
 
 function handleDeviceOrientation(event) {
     // Prüfen ob gerade verarbeitet wird oder kein Bild vorhanden
@@ -353,13 +383,14 @@ function handleDeviceOrientation(event) {
     // Initialisierung - erste Messung (Referenzwert für neutral)
     if (lastBeta === null || lastBeta === undefined) {
         lastBeta = tiltValue;
+        tiltStartTime = 0;
+        tiltDirection = null;
         return;
     }
     
     // Cooldown-Check: Verhindert zu schnelle Entscheidungen
     const now = Date.now();
     if (now - lastDecisionTime < decisionCooldown) {
-        lastBeta = tiltValue;
         return;
     }
     
@@ -367,34 +398,66 @@ function handleDeviceOrientation(event) {
     const tiltRight = tiltValue > tiltThreshold;
     const tiltLeft = tiltValue < -tiltThreshold;
     
-    // Nur reagieren wenn wirklich klar geneigt
+    // Visuelles Feedback während der Neigung
     if (tiltRight) {
-        // Nach rechts = behalten
-        clearTimeout(tiltCheckTimeout);
-        tiltCheckTimeout = setTimeout(() => {
-            // Prüfen ob immer noch nach rechts geneigt (aktuelle Messung verwenden)
-            if (!isProcessing && currentTiltValue > tiltThreshold && currentImage && currentIndex < photos.length) {
-                console.log('Device Orientation: Behalten (nach rechts geneigt, Gamma:', currentTiltValue.toFixed(1), '°)');
-                makeDecision(true);
-                lastDecisionTime = Date.now();
-                lastBeta = currentTiltValue;
-            }
-        }, 500); // 500ms Verzögerung für stabilere Erkennung
+        // Nach rechts = behalten (grün)
+        if (tiltDirection !== 'right') {
+            tiltDirection = 'right';
+            tiltStartTime = now;
+            // Visuelles Feedback zeigen
+            currentImage.classList.remove('swipe-delete-active');
+            currentImage.classList.add('swipe-keep-active');
+            updateSwipeFeedback('keep', Math.min(1, (tiltValue - tiltThreshold) / 20));
+        }
+        
+        // Entscheidung treffen nach 800ms stabiler Neigung
+        if (!tiltCheckTimeout && now - tiltStartTime > 800) {
+            tiltCheckTimeout = setTimeout(() => {
+                if (!isProcessing && currentTiltValue > tiltThreshold && currentImage && currentIndex < photos.length) {
+                    console.log('Device Orientation: Behalten (nach rechts geneigt, Gamma:', currentTiltValue.toFixed(1), '°)');
+                    makeDecision(true);
+                    lastDecisionTime = Date.now();
+                    lastBeta = null; // Reset für nächstes Bild
+                    tiltDirection = null;
+                    tiltCheckTimeout = null;
+                }
+            }, 100);
+        }
     } else if (tiltLeft) {
-        // Nach links = löschen
-        clearTimeout(tiltCheckTimeout);
-        tiltCheckTimeout = setTimeout(() => {
-            // Prüfen ob immer noch nach links geneigt (aktuelle Messung verwenden)
-            if (!isProcessing && currentTiltValue < -tiltThreshold && currentImage && currentIndex < photos.length) {
-                console.log('Device Orientation: Löschen (nach links geneigt, Gamma:', currentTiltValue.toFixed(1), '°)');
-                makeDecision(false);
-                lastDecisionTime = Date.now();
-                lastBeta = currentTiltValue;
-            }
-        }, 500);
+        // Nach links = löschen (rot)
+        if (tiltDirection !== 'left') {
+            tiltDirection = 'left';
+            tiltStartTime = now;
+            // Visuelles Feedback zeigen
+            currentImage.classList.remove('swipe-keep-active');
+            currentImage.classList.add('swipe-delete-active');
+            updateSwipeFeedback('delete', Math.min(1, Math.abs(tiltValue + tiltThreshold) / 20));
+        }
+        
+        // Entscheidung treffen nach 800ms stabiler Neigung
+        if (!tiltCheckTimeout && now - tiltStartTime > 800) {
+            tiltCheckTimeout = setTimeout(() => {
+                if (!isProcessing && currentTiltValue < -tiltThreshold && currentImage && currentIndex < photos.length) {
+                    console.log('Device Orientation: Löschen (nach links geneigt, Gamma:', currentTiltValue.toFixed(1), '°)');
+                    makeDecision(false);
+                    lastDecisionTime = Date.now();
+                    lastBeta = null; // Reset für nächstes Bild
+                    tiltDirection = null;
+                    tiltCheckTimeout = null;
+                }
+            }, 100);
+        }
     } else {
-        // Zurück in neutrale Position - Timeout löschen (verhindert versehentliche Auslösung)
-        clearTimeout(tiltCheckTimeout);
+        // Zurück in neutrale Position - Timeout löschen und Feedback zurücksetzen
+        if (tiltCheckTimeout) {
+            clearTimeout(tiltCheckTimeout);
+            tiltCheckTimeout = null;
+        }
+        tiltDirection = null;
+        tiltStartTime = 0;
+        // Visuelles Feedback zurücksetzen
+        currentImage.classList.remove('swipe-keep-active', 'swipe-delete-active');
+        resetSwipeFeedback();
         lastBeta = tiltValue;
     }
 }
