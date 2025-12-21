@@ -4,11 +4,11 @@ let keptPhotos = [];
 let deletedPhotos = [];
 let isProcessing = false;
 
-const imageContainer = document.getElementById('imageContainer');
-const currentImage = document.getElementById('currentImage');
-const swipeFeedback = document.getElementById('swipeFeedback');
-const progressText = document.getElementById('progressText');
-const progressFill = document.getElementById('progressFill');
+let imageContainer;
+let currentImage;
+let swipeFeedback;
+let progressText;
+let progressFill;
 
 // Swipe-Gesten
 let touchStartX = 0;
@@ -27,18 +27,46 @@ let decisionCooldown = 500; // Mindestzeit zwischen Entscheidungen (ms)
 
 // Bilder aus localStorage laden
 function loadPhotos() {
+    // DOM-Elemente sicherstellen
+    imageContainer = document.getElementById('imageContainer');
+    currentImage = document.getElementById('currentImage');
+    swipeFeedback = document.getElementById('swipeFeedback');
+    progressText = document.getElementById('progressText');
+    progressFill = document.getElementById('progressFill');
+    
+    if (!imageContainer || !currentImage || !swipeFeedback || !progressText || !progressFill) {
+        console.error('Review-Seite: DOM-Elemente nicht gefunden');
+        return;
+    }
+    
     const savedPhotos = localStorage.getItem('capturedPhotos');
     if (savedPhotos) {
-        photos = JSON.parse(savedPhotos);
-        // Array umkehren, damit das erste gemachte Bild zuerst kommt
-        photos = photos.reverse();
-        if (photos.length === 0) {
-            // Keine Bilder vorhanden, zurück zur Kamera
+        try {
+            photos = JSON.parse(savedPhotos);
+            // Array umkehren, damit das erste gemachte Bild zuerst kommt
+            photos = photos.reverse();
+            
+            if (photos.length === 0) {
+                // Keine Bilder vorhanden, zurück zur Kamera
+                window.location.href = 'camera.html';
+                return;
+            }
+            
+            // Erstes Bild anzeigen
+            currentImage.src = photos[0];
+            currentImage.onload = () => {
+                console.log('Bild geladen:', photos[0].substring(0, 50));
+            };
+            currentImage.onerror = () => {
+                console.error('Fehler beim Laden des Bildes');
+            };
+            
+            // Progress aktualisieren
+            updateProgress();
+        } catch (error) {
+            console.error('Fehler beim Laden der Fotos:', error);
             window.location.href = 'camera.html';
-            return;
         }
-        currentImage.src = photos[0];
-        updateProgress();
     } else {
         window.location.href = 'camera.html';
     }
@@ -46,6 +74,8 @@ function loadPhotos() {
 
 // Progress aktualisieren
 function updateProgress() {
+    if (!progressText || !progressFill) return;
+    
     const total = photos.length;
     const current = currentIndex + 1;
     progressText.textContent = `${current} / ${total}`;
@@ -56,6 +86,8 @@ function updateProgress() {
 
 // Nächstes Bild anzeigen
 function showNextImage() {
+    if (!currentImage) return;
+    
     currentIndex++;
     if (currentIndex < photos.length) {
         currentImage.src = photos[currentIndex];
@@ -92,6 +124,8 @@ function makeDecision(keep) {
 
 // Swipe Feedback anzeigen
 function showSwipeFeedback(action) {
+    if (!swipeFeedback) return;
+    
     swipeFeedback.classList.remove('swipe-keep', 'swipe-delete');
     
     if (action === 'keep') {
@@ -108,21 +142,29 @@ function showSwipeFeedback(action) {
 }
 
 function resetSwipeFeedback() {
+    if (!swipeFeedback) return;
+    
     swipeFeedback.classList.remove('swipe-keep', 'swipe-delete');
     swipeFeedback.textContent = '';
 }
 
-// Touch Events für Swipe
-imageContainer.addEventListener('touchstart', (e) => {
-    touchStartX = e.changedTouches[0].screenX;
-    touchStartY = e.changedTouches[0].screenY;
-}, { passive: true });
+// Touch Events für Swipe initialisieren
+function initSwipeGestures() {
+    if (!imageContainer) return;
+    
+    imageContainer.addEventListener('touchstart', (e) => {
+        if (isProcessing) return;
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
 
-imageContainer.addEventListener('touchend', (e) => {
-    touchEndX = e.changedTouches[0].screenX;
-    touchEndY = e.changedTouches[0].screenY;
-    handleSwipe();
-}, { passive: true });
+    imageContainer.addEventListener('touchend', (e) => {
+        if (isProcessing) return;
+        touchEndX = e.changedTouches[0].screenX;
+        touchEndY = e.changedTouches[0].screenY;
+        handleSwipe();
+    }, { passive: true });
+}
 
 function handleSwipe() {
     const deltaX = touchEndX - touchStartX;
@@ -140,24 +182,25 @@ function handleSwipe() {
     }
 }
 
-// Keyboard Events für Pfeiltasten
-document.addEventListener('keydown', (e) => {
-    if (isProcessing) return;
-    
-    // Pfeil nach rechts = behalten
-    if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        makeDecision(true);
-    }
-    // Pfeil nach links = löschen
-    else if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        makeDecision(false);
-    }
-});
+// Keyboard Events für Pfeiltasten initialisieren
+function initKeyboardControls() {
+    document.addEventListener('keydown', (e) => {
+        if (isProcessing) return;
+        
+        // Pfeil nach rechts = behalten
+        if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            makeDecision(true);
+        }
+        // Pfeil nach links = löschen
+        else if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            makeDecision(false);
+        }
+    });
+}
 
 // Device Orientation für Neigung
-let tiltCheckTimeout = null;
 let currentTiltValue = 0;
 
 function handleDeviceOrientation(event) {
@@ -254,11 +297,15 @@ function showCompleteScreen() {
     localStorage.setItem('capturedPhotos', JSON.stringify(keptPhotos));
     
     // Progress und Instructions ausblenden, Bild bleibt sichtbar
-    document.querySelector('.review-instructions').style.display = 'none';
-    document.querySelector('.review-progress').style.display = 'none';
+    const instructions = document.querySelector('.review-instructions');
+    const progress = document.querySelector('.review-progress');
+    if (instructions) instructions.style.display = 'none';
+    if (progress) progress.style.display = 'none';
     
     // Bild-Container für Overlay vorbereiten (abgedunkelt durch Modal-Overlay)
-    imageContainer.classList.add('image-dimmed');
+    if (imageContainer) {
+        imageContainer.classList.add('image-dimmed');
+    }
     
     // Modal direkt öffnen (Overlay mit abgedunkeltem Hintergrund)
     const albumModal = document.getElementById('albumModal');
@@ -344,17 +391,29 @@ function initAlbumModal() {
     });
 }
 
+// Hauptinitialisierung
+function initReviewPage() {
+    // 1. Bilder laden (initialisiert auch DOM-Elemente)
+    loadPhotos();
+    
+    // 2. Event Listener für Swipe-Gesten initialisieren
+    initSwipeGestures();
+    
+    // 3. Keyboard Controls initialisieren
+    initKeyboardControls();
+    
+    // 4. Device Orientation initialisieren
+    initDeviceOrientation();
+    
+    // 5. Album Modal initialisieren
+    initAlbumModal();
+}
+
 // Initialisierung nach DOM laden
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        loadPhotos();
-        initAlbumModal();
-        initDeviceOrientation();
-    });
+    document.addEventListener('DOMContentLoaded', initReviewPage);
 } else {
-    loadPhotos();
-    initAlbumModal();
-    initDeviceOrientation();
+    initReviewPage();
 }
 
 
