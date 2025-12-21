@@ -646,7 +646,6 @@ body {
 .switch-icon {
     line-height: 1;
     font-weight: 600;
-    transform: rotate(90deg);
 }
 
 /* Photo Stack Container */
