@@ -45,37 +45,25 @@ document.addEventListener('DOMContentLoaded', async () => {
             updatePermissionStatus(sensorStatusEl, 'pending', '⏳ Wird angefordert...');
             
             // Prüfen ob DeviceOrientationEvent unterstützt wird
-            if (typeof DeviceOrientationEvent !== 'undefined' && DeviceOrientationEvent !== null) {
-                // Prüfen ob requestPermission API vorhanden ist (iOS 13+)
-                if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    // iOS 13+ Safari - explizite Berechtigung ANFORDERN
-                    try {
-                        const permission = await DeviceOrientationEvent.requestPermission();
-                        
-                        if (permission === 'granted') {
-                            localStorage.setItem('deviceOrientationPermission', 'granted');
-                            updatePermissionStatus(sensorStatusEl, 'granted', '✓ Erteilt');
-                        } else {
-                            // Verweigert oder anderer Status
-                            localStorage.setItem('deviceOrientationPermission', 'denied');
-                            updatePermissionStatus(sensorStatusEl, 'denied', '✗ Verweigert');
-                        }
-                    } catch (error) {
-                        // Fehler bei der Anfrage - als verweigert behandeln
-                        localStorage.setItem('deviceOrientationPermission', 'denied');
-                        updatePermissionStatus(sensorStatusEl, 'denied', '✗ Fehler');
-                    }
-                } else {
-                    // Android Chrome / ältere iOS - keine explizite requestPermission API
-                    // Device Orientation Events funktionieren direkt ohne explizite Berechtigung
-                    localStorage.setItem('deviceOrientationPermission', 'granted');
-                    updatePermissionStatus(sensorStatusEl, 'granted', '✓ Verfügbar');
-                }
-            } else {
-                // DeviceOrientationEvent nicht unterstützt
-                localStorage.setItem('deviceOrientationPermission', 'not_supported');
-                updatePermissionStatus(sensorStatusEl, 'denied', '✗ Nicht unterstützt');
-            }
+            if (
+    typeof DeviceOrientationEvent !== "undefined" &&
+    typeof DeviceOrientationEvent.requestPermission === "function"
+  ) {
+    try {
+      const permission = await DeviceOrientationEvent.requestPermission();
+      if (permission === "granted") {
+        startSensors();
+      } else {
+        alert("Sensor-Zugriff abgelehnt");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  } 
+  // Android & andere Browser
+  else {
+    startSensors();
+  }
             
             // ===== 3. ONBOARDING ABSCHLIESSEN =====
             localStorage.setItem('onboardingCompleted', 'true');
