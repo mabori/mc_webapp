@@ -376,6 +376,12 @@ function handleDeviceOrientation(event) {
         tiltStartTime = 0;
         tiltDirection = null;
         tiltActive = false;
+        // Bild in neutraler Position setzen
+        if (currentImage) {
+            currentImage.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
+            currentImage.style.transform = '';
+            currentImage.style.opacity = '1';
+        }
         return;
     }
     
@@ -387,85 +393,124 @@ function handleDeviceOrientation(event) {
     // Berechne relative Neigung vom neutralen Wert
     const relativeTilt = tiltValue - neutralTiltValue;
     
-    // Prüfen ob wirklich klar geneigt (über dem Threshold)
+    // Maximale Neigung für die Visualisierung (entspricht etwa 45 Grad)
+    const maxTiltForVisualization = 45;
+    
+    // Prüfen ob wirklich klar geneigt (über dem Threshold für Entscheidung)
     const tiltRight = relativeTilt > tiltThreshold;
     const tiltLeft = relativeTilt < -tiltThreshold;
     
-    // Visuelles Feedback während der Neigung
-    if (tiltRight) {
-        // Nach rechts = behalten (grün)
-        if (tiltDirection !== 'right') {
-            // Richtung geändert - neuen Timer starten
-            if (tiltCheckTimeout) {
-                clearTimeout(tiltCheckTimeout);
-                tiltCheckTimeout = null;
+    // Visuelles Feedback: Bild mit der Neigung verschieben (wie beim Touch)
+    if (Math.abs(relativeTilt) > 3) { // Minimale Neigung für sichtbare Bewegung
+        // Transition deaktivieren während der Neigung für flüssige Bewegung
+        if (currentImage) {
+            currentImage.style.transition = 'none';
+        }
+        
+        // Berechne Verschiebung basierend auf relativer Neigung
+        // Maximal 50% der Bildschirmbreite
+        const maxDrag = window.innerWidth * 0.5;
+        // Normalisiere die Neigung (relativeTilt / maxTiltForVisualization) auf maxDrag
+        const normalizedTilt = Math.max(-maxTiltForVisualization, Math.min(maxTiltForVisualization, relativeTilt));
+        const dragDistance = (normalizedTilt / maxTiltForVisualization) * maxDrag;
+        
+        // Bild verschieben (wie beim Touch-Swipe)
+        if (currentImage) {
+            currentImage.style.transform = `translateX(${dragDistance}px) rotate(${dragDistance * 0.1}deg)`;
+            
+            // Opacity basierend auf Neigung reduzieren
+            const opacity = 1 - Math.abs(normalizedTilt) / maxTiltForVisualization * 0.5;
+            currentImage.style.opacity = opacity;
+        }
+        
+        // Visuelles Feedback (grün/rot) und Text-Feedback
+        if (tiltRight) {
+            // Nach rechts = behalten (grün)
+            if (tiltDirection !== 'right') {
+                // Richtung geändert - neuen Timer starten
+                if (tiltCheckTimeout) {
+                    clearTimeout(tiltCheckTimeout);
+                    tiltCheckTimeout = null;
+                }
+                tiltDirection = 'right';
+                tiltStartTime = now;
+                tiltActive = true;
             }
-            tiltDirection = 'right';
-            tiltStartTime = now;
-            tiltActive = true;
-            // Visuelles Feedback zeigen
+            
+            // CSS-Klassen für visuelles Feedback
             if (currentImage) {
                 currentImage.classList.remove('swipe-delete-active');
                 currentImage.classList.add('swipe-keep-active');
             }
-            updateSwipeFeedback('keep', Math.min(1, Math.abs(relativeTilt) / 30));
-        }
-        
-        // Entscheidung treffen nach 800ms stabiler Neigung
-        if (!tiltCheckTimeout && now - tiltStartTime >= 800) {
-            tiltCheckTimeout = setTimeout(() => {
-                // Nochmal prüfen ob immer noch geneigt
-                if (!isProcessing && (currentTiltValue - neutralTiltValue) > tiltThreshold && currentImage && currentIndex < photos.length) {
-                    makeDecision(true);
-                    lastDecisionTime = Date.now();
-                    neutralTiltValue = null; // Reset für nächstes Bild
-                    tiltDirection = null;
-                    tiltStartTime = 0;
-                    tiltActive = false;
-                    tiltCheckTimeout = null;
-                } else {
+            updateSwipeFeedback('keep', Math.min(1, Math.abs(relativeTilt) / maxTiltForVisualization));
+            
+            // Entscheidung treffen nach 800ms stabiler Neigung über Threshold
+            if (!tiltCheckTimeout && now - tiltStartTime >= 800 && relativeTilt > tiltThreshold) {
+                tiltCheckTimeout = setTimeout(() => {
+                    // Nochmal prüfen ob immer noch eindeutig geneigt
+                    const currentRelativeTilt = currentTiltValue - neutralTiltValue;
+                    if (!isProcessing && currentRelativeTilt > tiltThreshold && currentImage && currentIndex < photos.length) {
+                        // Transition wieder aktivieren für flüssige Animation
+                        if (currentImage) {
+                            currentImage.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+                        }
+                        makeDecision(true);
+                        lastDecisionTime = Date.now();
+                        neutralTiltValue = null; // Reset für nächstes Bild
+                        tiltDirection = null;
+                        tiltStartTime = 0;
+                        tiltActive = false;
+                        tiltCheckTimeout = null;
+                    } else {
+                        tiltCheckTimeout = null;
+                    }
+                }, 50);
+            }
+        } else if (tiltLeft) {
+            // Nach links = löschen (rot)
+            if (tiltDirection !== 'left') {
+                // Richtung geändert - neuen Timer starten
+                if (tiltCheckTimeout) {
+                    clearTimeout(tiltCheckTimeout);
                     tiltCheckTimeout = null;
                 }
-            }, 50);
-        }
-    } else if (tiltLeft) {
-        // Nach links = löschen (rot)
-        if (tiltDirection !== 'left') {
-            // Richtung geändert - neuen Timer starten
-            if (tiltCheckTimeout) {
-                clearTimeout(tiltCheckTimeout);
-                tiltCheckTimeout = null;
+                tiltDirection = 'left';
+                tiltStartTime = now;
+                tiltActive = true;
             }
-            tiltDirection = 'left';
-            tiltStartTime = now;
-            tiltActive = true;
-            // Visuelles Feedback zeigen
+            
+            // CSS-Klassen für visuelles Feedback
             if (currentImage) {
                 currentImage.classList.remove('swipe-keep-active');
                 currentImage.classList.add('swipe-delete-active');
             }
-            updateSwipeFeedback('delete', Math.min(1, Math.abs(relativeTilt) / 30));
-        }
-        
-        // Entscheidung treffen nach 800ms stabiler Neigung
-        if (!tiltCheckTimeout && now - tiltStartTime >= 800) {
-            tiltCheckTimeout = setTimeout(() => {
-                // Nochmal prüfen ob immer noch geneigt
-                if (!isProcessing && (currentTiltValue - neutralTiltValue) < -tiltThreshold && currentImage && currentIndex < photos.length) {
-                    makeDecision(false);
-                    lastDecisionTime = Date.now();
-                    neutralTiltValue = null; // Reset für nächstes Bild
-                    tiltDirection = null;
-                    tiltStartTime = 0;
-                    tiltActive = false;
-                    tiltCheckTimeout = null;
-                } else {
-                    tiltCheckTimeout = null;
-                }
-            }, 50);
+            updateSwipeFeedback('delete', Math.min(1, Math.abs(relativeTilt) / maxTiltForVisualization));
+            
+            // Entscheidung treffen nach 800ms stabiler Neigung über Threshold
+            if (!tiltCheckTimeout && now - tiltStartTime >= 800 && relativeTilt < -tiltThreshold) {
+                tiltCheckTimeout = setTimeout(() => {
+                    // Nochmal prüfen ob immer noch eindeutig geneigt
+                    const currentRelativeTilt = currentTiltValue - neutralTiltValue;
+                    if (!isProcessing && currentRelativeTilt < -tiltThreshold && currentImage && currentIndex < photos.length) {
+                        // Transition wieder aktivieren für flüssige Animation
+                        if (currentImage) {
+                            currentImage.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+                        }
+                        makeDecision(false);
+                        lastDecisionTime = Date.now();
+                        neutralTiltValue = null; // Reset für nächstes Bild
+                        tiltDirection = null;
+                        tiltStartTime = 0;
+                        tiltActive = false;
+                        tiltCheckTimeout = null;
+                    } else {
+                        tiltCheckTimeout = null;
+                    }
+                }, 50);
+            }
         }
     } else {
-        // Zurück in neutrale Position
+        // Zurück in neutrale Position (Neigung zu gering)
         if (tiltActive) {
             // Timeout löschen wenn noch aktiv
             if (tiltCheckTimeout) {
@@ -475,12 +520,17 @@ function handleDeviceOrientation(event) {
             tiltDirection = null;
             tiltStartTime = 0;
             tiltActive = false;
-            // Visuelles Feedback zurücksetzen
+            
+            // Bild zurücksetzen mit Transition
             if (currentImage) {
+                currentImage.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+                currentImage.style.transform = '';
+                currentImage.style.opacity = '1';
                 currentImage.classList.remove('swipe-keep-active', 'swipe-delete-active');
             }
             resetSwipeFeedback();
         }
+        
         // Neutralen Wert aktualisieren (gleitender Durchschnitt für Stabilität)
         neutralTiltValue = (neutralTiltValue * 0.9 + tiltValue * 0.1);
     }
