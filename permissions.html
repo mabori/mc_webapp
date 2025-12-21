@@ -11,29 +11,35 @@
     <div class="permissions-container">
         <div class="permissions-content">
             <h1 class="permissions-title">Berechtigungen</h1>
-            <div class="permissions-info">
-                <div class="permission-item">
-                    <div class="permission-icon">📷</div>
-                    <div class="permission-text">
-                        <div class="permission-header">
+            
+            <div class="permissions-info-block">
+                <p class="permissions-description">
+                    Für die richtige Verwendung der App werden folgende Berechtigungen benötigt:
+                </p>
+                <div class="permissions-list">
+                    <div class="permission-item">
+                        <div class="permission-icon">📷</div>
+                        <div class="permission-text">
                             <h3>Kamera</h3>
-                            <span class="permission-status" id="cameraStatus">⏳ Wird geprüft...</span>
+                            <p>Zum Aufnehmen von Fotos für Ihre Memory-Alben</p>
                         </div>
-                        <p>Zum Aufnehmen von Fotos für Ihre Memory-Alben</p>
                     </div>
-                </div>
-                <div class="permission-item">
-                    <div class="permission-icon">📱</div>
-                    <div class="permission-text">
-                        <div class="permission-header">
+                    <div class="permission-item">
+                        <div class="permission-icon">📱</div>
+                        <div class="permission-text">
                             <h3>Neigungssensor</h3>
-                            <span class="permission-status" id="sensorStatus">⏳ Wird geprüft...</span>
+                            <p>Zum einfachen Entscheiden über Ihre Fotos durch Kippen des Geräts nach rechts (behalten) oder links (löschen)</p>
                         </div>
-                        <p>Zum einfachen Entscheiden über Ihre Fotos durch Kippen des Geräts</p>
                     </div>
                 </div>
+                <p class="permissions-note">
+                    Diese Berechtigungen müssen für die richtige Verwendung verfügbar sein.
+                </p>
             </div>
+            
             <button class="permissions-btn" id="continueBtn">Weiter</button>
+            
+            <p class="permissions-skip" id="skipLink">Überspringen</p>
         </div>
     </div>
     
