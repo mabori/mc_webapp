@@ -119,7 +119,7 @@ function resetImagePosition() {
 
 // Entscheidung treffen (behalten = true, löschen = false)
 function makeDecision(keep) {
-    if (isProcessing || !currentImage) return;
+    if (isProcessing || !currentImage || photos.length === 0 || currentIndex >= photos.length) return;
     
     isProcessing = true;
     
@@ -180,7 +180,12 @@ function resetSwipeFeedback() {
 
 // Touch Events für Swipe initialisieren
 function initSwipeGestures() {
-    if (!imageContainer || !currentImage) return;
+    if (!imageContainer || !currentImage) {
+        console.error('Swipe-Gesten: DOM-Elemente nicht verfügbar');
+        return;
+    }
+    
+    console.log('✓ Swipe-Gesten initialisiert (Nach links/rechts wischen)');
     
     imageContainer.addEventListener('touchstart', (e) => {
         if (isProcessing) return;
@@ -241,6 +246,12 @@ function initSwipeGestures() {
 }
 
 function handleSwipe() {
+    // Prüfen ob gerade verarbeitet wird oder kein Bild vorhanden
+    if (isProcessing || !currentImage || photos.length === 0 || currentIndex >= photos.length) {
+        resetImagePosition();
+        return;
+    }
+    
     const deltaX = touchEndX - touchStartX;
     const deltaY = touchEndY - touchStartY;
     
@@ -248,6 +259,7 @@ function handleSwipe() {
     if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > swipeThreshold) {
         if (deltaX > 0) {
             // Nach rechts = behalten
+            console.log('Swipe: Behalten (nach rechts gewischt)');
             // Bild komplett nach rechts verschieben und ausblenden
             if (currentImage) {
                 currentImage.style.transform = `translateX(${window.innerWidth}px) rotate(15deg)`;
@@ -258,6 +270,7 @@ function handleSwipe() {
             }, 100);
         } else {
             // Nach links = löschen
+            console.log('Swipe: Löschen (nach links gewischt)');
             // Bild komplett nach links verschieben und ausblenden
             if (currentImage) {
                 currentImage.style.transform = `translateX(-${window.innerWidth}px) rotate(-15deg)`;
@@ -270,7 +283,9 @@ function handleSwipe() {
     } else {
         // Swipe nicht weit genug - Bild zurücksetzen
         resetImagePosition();
-        currentImage.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+        if (currentImage) {
+            currentImage.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+        }
     }
 }
 
@@ -294,19 +309,26 @@ function updateSwipeFeedback(action, intensity) {
 // Keyboard Events für Pfeiltasten initialisieren
 function initKeyboardControls() {
     document.addEventListener('keydown', (e) => {
-        if (isProcessing) return;
+        // Prüfen ob gerade verarbeitet wird oder kein Bild vorhanden
+        if (isProcessing || !currentImage || photos.length === 0 || currentIndex >= photos.length) {
+            return;
+        }
         
         // Pfeil nach rechts = behalten
         if (e.key === 'ArrowRight') {
             e.preventDefault();
+            console.log('Keyboard: Behalten (Pfeil rechts)');
             makeDecision(true);
         }
         // Pfeil nach links = löschen
         else if (e.key === 'ArrowLeft') {
             e.preventDefault();
+            console.log('Keyboard: Löschen (Pfeil links)');
             makeDecision(false);
         }
     });
+    
+    console.log('✓ Keyboard Controls initialisiert (Pfeil links/rechts)');
 }
 
 // Device Orientation für Neigung
