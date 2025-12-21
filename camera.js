@@ -1,5 +1,6 @@
 let stream = null;
 let capturedPhotos = [];
+let currentFacingMode = 'environment'; // 'environment' = Rückkamera, 'user' = Frontkamera
 
 const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
@@ -9,17 +10,24 @@ const photoCounter = document.getElementById('photoCounter');
 
 // Kamera initialisieren
 // Berechtigung wurde bereits beim Onboarding angefordert, daher direkt verwenden
-async function initCamera() {
+async function initCamera(facingMode = 'environment') {
     try {
+        // Alten Stream stoppen falls vorhanden
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+        
         // Berechtigung wurde bereits beim Onboarding angefordert
         // Browser speichert die Berechtigung, daher wird hier nicht erneut gefragt
         stream = await navigator.mediaDevices.getUserMedia({
             video: {
-                facingMode: 'environment', // Rückkamera bevorzugen
+                facingMode: facingMode,
                 width: { ideal: 1920 },
                 height: { ideal: 1920 }
             }
         });
+        
+        currentFacingMode = facingMode;
         video.srcObject = stream;
         
         // Video-Element auf quadratisches Format beschränken
@@ -37,6 +45,12 @@ async function initCamera() {
             alert('Kamera konnte nicht geöffnet werden. Bitte Berechtigungen prüfen.');
         }
     }
+}
+
+// Kamera wechseln
+async function switchCamera() {
+    const newFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+    await initCamera(newFacingMode);
 }
 
 // Foto aufnehmen
@@ -106,12 +120,18 @@ function updatePhotoStack() {
 // Event Listeners
 captureBtn.addEventListener('click', capturePhoto);
 
+// Kamera-Wechsel Button
+const switchCameraBtn = document.getElementById('switchCameraBtn');
+if (switchCameraBtn) {
+    switchCameraBtn.addEventListener('click', switchCamera);
+}
+
 // Initialisierung
 photoCounter.textContent = '0';
 photoCounter.style.display = 'none';
 
-// Kamera beim Laden starten
-initCamera();
+// Kamera beim Laden starten (Rückkamera als Standard)
+initCamera('environment');
 
 // Bestätigungs-Button Event Listener
 const confirmBtn = document.getElementById('confirmBtn');

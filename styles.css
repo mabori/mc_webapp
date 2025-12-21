@@ -612,6 +612,43 @@ body {
     font-weight: 600;
 }
 
+/* Camera Switch Button */
+.camera-switch-btn {
+    position: absolute;
+    bottom: max(50px, calc(env(safe-area-inset-bottom, 0px) + 50px));
+    left: 24px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    font-size: 1.5rem;
+    z-index: 100;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-md);
+}
+
+.camera-switch-btn:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+    transform: scale(1.1);
+}
+
+.camera-switch-btn:active {
+    transform: scale(0.95);
+}
+
+.switch-icon {
+    line-height: 1;
+    font-weight: 600;
+    transform: rotate(90deg);
+}
+
 /* Photo Stack Container */
 .photo-stack-container {
     position: fixed;
@@ -736,6 +773,14 @@ body {
     
     .camera-controls {
         padding-bottom: max(40px, calc(env(safe-area-inset-bottom, 0px) + 40px));
+    }
+    
+    .camera-switch-btn {
+        bottom: max(40px, calc(env(safe-area-inset-bottom, 0px) + 40px));
+        left: 16px;
+        width: 44px;
+        height: 44px;
+        font-size: 1.25rem;
     }
 }
 
