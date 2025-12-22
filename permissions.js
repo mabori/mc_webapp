@@ -1,7 +1,21 @@
+// Funktion zum Erkennen mobiler Geräte
+function isMobileDevice() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+           (window.innerWidth <= 768 && window.matchMedia("(pointer: coarse)").matches);
+}
+
 // Weiter Button - Berechtigungen anfordern
 document.addEventListener('DOMContentLoaded', () => {
     const continueBtn = document.getElementById('continueBtn');
     const skipLink = document.getElementById('skipLink');
+    const tiltSensorItem = document.getElementById('tiltSensorItem');
+    
+    // Tilt Sensor Item nur auf mobilen Geräten anzeigen
+    if (tiltSensorItem) {
+        if (!isMobileDevice()) {
+            tiltSensorItem.style.display = 'none';
+        }
+    }
     
     // Weiter Button - Berechtigungen anfordern
     continueBtn.addEventListener('click', async (e) => {
@@ -10,31 +24,37 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             // ===== 1. DEVICE ORIENTATION SENSOR BERECHTIGUNG (ZUERST) =====
-            // WICHTIG: Sensor-Berechtigung ZUERST anfordern, bevor Kamera
-            // Damit der Dialog definitiv erscheint
-            if (typeof DeviceOrientationEvent !== 'undefined' && 
-                DeviceOrientationEvent !== null && 
-                typeof DeviceOrientationEvent.requestPermission === 'function') {
-                
-                try {
-                    // Direkt im Event-Handler aufrufen - KEINE Verzögerung!
-                    const permission = await DeviceOrientationEvent.requestPermission();
+            // Nur bei mobilen Geräten anfordern
+            if (isMobileDevice()) {
+                // WICHTIG: Sensor-Berechtigung ZUERST anfordern, bevor Kamera
+                // Damit der Dialog definitiv erscheint
+                if (typeof DeviceOrientationEvent !== 'undefined' && 
+                    DeviceOrientationEvent !== null && 
+                    typeof DeviceOrientationEvent.requestPermission === 'function') {
                     
-                    if (permission === 'granted') {
-                        localStorage.setItem('deviceOrientationPermission', 'granted');
-                    } else {
+                    try {
+                        // Direkt im Event-Handler aufrufen - KEINE Verzögerung!
+                        const permission = await DeviceOrientationEvent.requestPermission();
+                        
+                        if (permission === 'granted') {
+                            localStorage.setItem('deviceOrientationPermission', 'granted');
+                        } else {
+                            localStorage.setItem('deviceOrientationPermission', 'denied');
+                        }
+                    } catch (error) {
                         localStorage.setItem('deviceOrientationPermission', 'denied');
                     }
-                } catch (error) {
-                    localStorage.setItem('deviceOrientationPermission', 'denied');
+                } else {
+                    // Android Chrome / ältere iOS / nicht unterstützt
+                    if (typeof DeviceOrientationEvent === 'undefined' || DeviceOrientationEvent === null) {
+                        localStorage.setItem('deviceOrientationPermission', 'not_supported');
+                    } else {
+                        localStorage.setItem('deviceOrientationPermission', 'granted');
+                    }
                 }
             } else {
-                // Android Chrome / ältere iOS / nicht unterstützt
-                if (typeof DeviceOrientationEvent === 'undefined' || DeviceOrientationEvent === null) {
-                    localStorage.setItem('deviceOrientationPermission', 'not_supported');
-                } else {
-                    localStorage.setItem('deviceOrientationPermission', 'granted');
-                }
+                // Desktop-Gerät - keine Sensor-Berechtigung benötigt
+                localStorage.setItem('deviceOrientationPermission', 'not_needed');
             }
             
             // ===== 2. KAMERA-BERECHTIGUNG =====
@@ -78,6 +98,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Device Orientation Berechtigung anfordern (für review.js wiederverwendbar)
 async function requestDeviceOrientationPermission() {
+    // Nur bei mobilen Geräten anfordern
+    if (!isMobileDevice()) {
+        localStorage.setItem('deviceOrientationPermission', 'not_needed');
+        return false;
+    }
+    
     // Prüfen ob DeviceOrientationEvent unterstützt wird
     if (typeof DeviceOrientationEvent === 'undefined' || DeviceOrientationEvent === null) {
         localStorage.setItem('deviceOrientationPermission', 'not_supported');

@@ -545,13 +545,29 @@ function handleDeviceOrientation(event) {
 }
 
 // Device Orientation Event Listener initialisieren
+// Funktion zum Erkennen mobiler Geräte
+function isMobileDevice() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+           (window.innerWidth <= 768 && window.matchMedia("(pointer: coarse)").matches);
+}
+
 async function initDeviceOrientation() {
+    // Nur bei mobilen Geräten initialisieren
+    if (!isMobileDevice()) {
+        return;
+    }
+    
     // Prüfen ob DeviceOrientationEvent unterstützt wird
     if (typeof DeviceOrientationEvent === 'undefined' || DeviceOrientationEvent === null) {
         return;
     }
     
     const permissionStatus = localStorage.getItem('deviceOrientationPermission');
+    
+    // Wenn nicht benötigt (Desktop), nichts tun
+    if (permissionStatus === 'not_needed') {
+        return;
+    }
     
     // Für iOS 13+ Safari benötigt explizite Berechtigung
     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
