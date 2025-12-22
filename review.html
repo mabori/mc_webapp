@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="description" content="Bilder überprüfen - Memories">
-    <title>Bilder überprüfen - Memories</title>
+    <meta name="description" content="Review images - Memories">
+    <title>Review Images - Memories</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="review-page">
@@ -17,32 +17,32 @@
         </div>
         
         <div class="image-container" id="imageContainer">
-            <img id="currentImage" class="review-image" src="" alt="Foto">
+            <img id="currentImage" class="review-image" src="" alt="Photo">
             <div class="swipe-feedback" id="swipeFeedback"></div>
         </div>
         
         <div class="review-instructions">
-            <p class="instruction-text">Nach rechts wischen / Pfeil rechts / Handy nach rechts kippen = behalten</p>
-            <p class="instruction-text">Nach links wischen / Pfeil links / Handy nach links kippen = löschen</p>
+            <p class="instruction-text">Swipe right / Right arrow / Tilt phone right = keep</p>
+            <p class="instruction-text">Swipe left / Left arrow / Tilt phone left = delete</p>
         </div>
     </div>
     
-    <!-- Album Erstellen Modal -->
+    <!-- Create Album Modal -->
     <div class="modal-overlay" id="albumModal" style="display: none;">
         <div class="modal-content">
-            <h2 class="modal-title">Album erstellen</h2>
+            <h2 class="modal-title">Create Album</h2>
             <form id="albumForm">
                 <div class="form-group">
                     <label for="albumName">Name</label>
-                    <input type="text" id="albumName" name="albumName" placeholder="Album-Name eingeben" required>
+                    <input type="text" id="albumName" name="albumName" placeholder="Enter album name" required>
                 </div>
                 <div class="form-group">
-                    <label for="albumLocation">Ort</label>
-                    <input type="text" id="albumLocation" name="albumLocation" placeholder="Ort eingeben" required>
+                    <label for="albumLocation">Location</label>
+                    <input type="text" id="albumLocation" name="albumLocation" placeholder="Enter location" required>
                 </div>
                 <div class="modal-buttons">
-                    <button type="button" class="modal-btn modal-btn-cancel" id="cancelBtn">Verwerfen</button>
-                    <button type="submit" class="modal-btn modal-btn-confirm">Bestätigen</button>
+                    <button type="button" class="modal-btn modal-btn-cancel" id="cancelBtn">Discard</button>
+                    <button type="submit" class="modal-btn modal-btn-confirm">Confirm</button>
                 </div>
             </form>
         </div>

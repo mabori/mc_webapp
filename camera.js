@@ -8,17 +8,18 @@ const captureBtn = document.getElementById('captureBtn');
 const photoStack = document.getElementById('photoStack');
 const photoCounter = document.getElementById('photoCounter');
 
-// Kamera initialisieren
-// Berechtigung wurde bereits beim Onboarding angefordert, daher direkt verwenden
+// Initialize camera
+// Permission was already requested during onboarding, so we can use it directly
+// The browser remembers the permission, so getUserMedia will not ask again
 async function initCamera(facingMode = 'environment') {
     try {
-        // Alten Stream stoppen falls vorhanden
+        // Stop old stream if present
         if (stream) {
             stream.getTracks().forEach(track => track.stop());
         }
         
-        // Berechtigung wurde bereits beim Onboarding angefordert
-        // Browser speichert die Berechtigung, daher wird hier nicht erneut gefragt
+        // Permission was already requested during onboarding
+        // Browser remembers the permission, so getUserMedia will not ask again here
         stream = await navigator.mediaDevices.getUserMedia({
             video: {
                 facingMode: facingMode,
@@ -39,11 +40,12 @@ async function initCamera(facingMode = 'environment') {
             canvas.height = size;
         });
     } catch (error) {
-        // Wenn die Berechtigung verweigert wurde, benutzerfreundliche Nachricht
+        // If permission was denied, show user-friendly message
+        // Note: Permission was already requested during onboarding, this should not happen normally
         if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-            alert('Kamera-Berechtigung wurde verweigert. Bitte erlauben Sie den Zugriff in den Browsereinstellungen.');
+            alert('Camera permission was denied. Please allow access in your browser settings.');
         } else {
-            alert('Kamera konnte nicht geöffnet werden. Bitte Berechtigungen prüfen.');
+            alert('Camera could not be opened. Please check permissions.');
         }
     }
 }
@@ -111,7 +113,7 @@ function updatePhotoStack() {
         
         const img = document.createElement('img');
         img.src = photoData;
-        img.alt = `Foto ${index + 1}`;
+        img.alt = `Photo ${index + 1}`;
         
         photoElement.appendChild(img);
         photoStack.appendChild(photoElement);
@@ -144,7 +146,7 @@ if (confirmBtn) {
             // Zur Review-Seite navigieren
             window.location.href = 'review.html';
         } else {
-            alert('Bitte erstellen Sie mindestens ein Foto.');
+            alert('Please take at least one photo.');
         }
     });
 }

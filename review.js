@@ -162,11 +162,11 @@ function showSwipeFeedback(action) {
     
     if (action === 'keep') {
         swipeFeedback.classList.add('swipe-keep');
-        swipeFeedback.textContent = '✓ Behalten';
+        swipeFeedback.textContent = '✓ Keep';
         swipeFeedback.style.opacity = '1';
     } else {
         swipeFeedback.classList.add('swipe-delete');
-        swipeFeedback.textContent = '✗ Löschen';
+        swipeFeedback.textContent = '✗ Delete';
         swipeFeedback.style.opacity = '1';
     }
     
@@ -312,11 +312,11 @@ function updateSwipeFeedback(action, intensity) {
     if (intensity > 0) {
         if (action === 'keep') {
             swipeFeedback.classList.add('swipe-keep');
-            swipeFeedback.textContent = '✓ Behalten';
+            swipeFeedback.textContent = '✓ Keep';
             swipeFeedback.style.opacity = Math.min(1, intensity * 2);
         } else if (action === 'delete') {
             swipeFeedback.classList.add('swipe-delete');
-            swipeFeedback.textContent = '✗ Löschen';
+            swipeFeedback.textContent = '✗ Delete';
             swipeFeedback.style.opacity = Math.min(1, intensity * 2);
         }
     } else {
@@ -664,7 +664,7 @@ function initAlbumModal() {
         const albumLocation = albumLocationInput.value.trim();
         
         if (!albumName) {
-            alert('Bitte geben Sie einen Namen für das Album ein.');
+            alert('Please enter a name for the album.');
             return;
         }
         
@@ -673,7 +673,7 @@ function initAlbumModal() {
         const newAlbum = {
             id: Date.now().toString(),
             name: albumName,
-            ort: albumLocation || 'Kein Ort angegeben',
+            ort: albumLocation || 'No location specified',
             photos: keptPhotos,
             createdAt: new Date().toISOString()
         };

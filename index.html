@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Memories - Erstellen Sie Ihr erstes Memory-Album">
+    <meta name="description" content="Memories - Create your first memory album">
     <title>Memories</title>
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -11,31 +11,31 @@
     <div class="main-content">
         <h1 class="main-heading" id="mainHeading" style="display: none;">Memories</h1>
         <div class="albums-container" id="albumsContainer">
-            <!-- Alben werden hier dynamisch eingefügt -->
+            <!-- Albums will be dynamically inserted here -->
         </div>
         <div class="no-albums" id="noAlbums">
             <h1 class="main-heading">Memories</h1>
-            <p class="subtitle">erstellen sie ihr erstes Memory-Album</p>
+            <p class="subtitle">Create your first memory album</p>
         </div>
     </div>
     
-    <a href="camera.html" class="fab-button" aria-label="Neues Memory-Album erstellen">
+    <a href="camera.html" class="fab-button" aria-label="Create new memory album">
         <span class="fab-icon">+</span>
     </a>
     
     <!-- Album Options Modal -->
     <div class="modal-overlay" id="albumOptionsModal" style="display: none;">
         <div class="modal-content">
-            <button class="modal-close-btn" id="closeOptionsBtn" aria-label="Schließen">×</button>
-            <h2 class="modal-title">Album bearbeiten</h2>
+            <button class="modal-close-btn" id="closeOptionsBtn" aria-label="Close">×</button>
+            <h2 class="modal-title">Edit Album</h2>
             <form id="albumOptionsForm">
                 <div class="form-group">
                     <label for="editAlbumName">Name</label>
-                    <input type="text" id="editAlbumName" name="editAlbumName" placeholder="Album-Name eingeben" required>
+                    <input type="text" id="editAlbumName" name="editAlbumName" placeholder="Enter album name" required>
                 </div>
                 <div class="modal-buttons">
-                    <button type="button" class="modal-btn modal-btn-danger" id="deleteAlbumBtn">Löschen</button>
-                    <button type="submit" class="modal-btn modal-btn-confirm">Speichern</button>
+                    <button type="button" class="modal-btn modal-btn-danger" id="deleteAlbumBtn">Delete</button>
+                    <button type="submit" class="modal-btn modal-btn-confirm">Save</button>
                 </div>
             </form>
         </div>

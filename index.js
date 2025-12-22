@@ -40,7 +40,7 @@ function loadAlbums() {
         const albumOptionsBtn = document.createElement('button');
         albumOptionsBtn.className = 'album-options-btn';
         albumOptionsBtn.innerHTML = '⋮';
-        albumOptionsBtn.setAttribute('aria-label', 'Album-Optionen');
+        albumOptionsBtn.setAttribute('aria-label', 'Album options');
         albumOptionsBtn.dataset.albumId = album.id;
         
         albumHeader.appendChild(albumName);
@@ -48,7 +48,7 @@ function loadAlbums() {
         
         const albumLocation = document.createElement('p');
         albumLocation.className = 'album-location';
-        albumLocation.textContent = album.ort;
+        albumLocation.innerHTML = '<span class="location-icon">📍</span>' + (album.ort || 'No location specified');
         
         albumInfo.appendChild(albumHeader);
         albumInfo.appendChild(albumLocation);
@@ -121,7 +121,7 @@ function saveAlbumChanges(albumId, newName) {
 
 // Album löschen
 function deleteAlbum(albumId) {
-    if (!confirm('Möchten Sie dieses Album wirklich löschen?')) {
+    if (!confirm('Do you really want to delete this album?')) {
         return;
     }
     
@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const newName = nameInput.value.trim();
         if (!newName) {
-            alert('Bitte geben Sie einen Namen ein.');
+            alert('Please enter a name.');
             return;
         }
         

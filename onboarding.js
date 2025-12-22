@@ -1,5 +1,5 @@
 // Typing-Effekt Funktion
-function typeText(element, text, speed = 50, callback) {
+function typeText(element, text, speed = 20, callback) {
     let index = 0;
     element.textContent = '';
     
@@ -16,21 +16,23 @@ function typeText(element, text, speed = 50, callback) {
     type();
 }
 
-// Fade-In-Effekt Funktion
-function fadeInText(element, duration = 1200, callback) {
-    // Text sofort setzen, aber unsichtbar
+// Fade-In-Effekt Funktion - langsam von komplett transparent zu sichtbar
+function fadeInText(element, duration = 1800, callback, callbackDelay = null) {
+    // Text sofort setzen, aber komplett transparent (opacity: 0)
     element.style.opacity = '0';
     element.style.transition = `opacity ${duration}ms ease-in-out`;
     
-    // Fade-In starten nach kurzer Verzögerung
+    // Kurze Verzögerung, damit Browser die Transition registriert
     setTimeout(() => {
+        // Langsam von transparent (0) zu sichtbar (1) - wird immer weniger transparent
         element.style.opacity = '1';
         
-        // Callback nach Animation
+        // Callback früher aufrufen (z.B. nach 60% der Animationsdauer), damit Text parallel erscheinen kann
         if (callback) {
-            setTimeout(callback, duration);
+            const delay = callbackDelay !== null ? callbackDelay : Math.floor(duration * 0.6);
+            setTimeout(callback, delay);
         }
-    }, 50);
+    }, 10);
 }
 
 // Verstanden Button - Weiterleitung zur Berechtigungsseite
@@ -40,22 +42,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const understandBtn = document.getElementById('understandBtn');
     
     const titleText = 'Memories';
-    const descriptionText = 'Mit Memories können Sie Ihre besonderen Momente in persönlichen Alben speichern und für immer bewahren.';
+    const descriptionText = 'With Memories, you can save your special moments in personal albums and preserve them forever.';
     
-    // Text sofort setzen (unsichtbar)
+    // Text sofort setzen (komplett transparent - opacity: 0)
     titleElement.textContent = titleText;
+    titleElement.style.opacity = '0'; // Start: komplett transparent
     
-    // Fade-In-Effekt für Titel starten
-    fadeInText(titleElement, 1200, () => {
-        // Nach Titel: Typing-Effekt für Text starten
-        setTimeout(() => {
-            typeText(textElement, descriptionText, 30, () => {
-                // Nach Text: Button einblenden
-                understandBtn.style.transition = 'opacity 0.5s ease';
-                understandBtn.style.opacity = '1';
-                understandBtn.style.pointerEvents = 'auto';
-            });
-        }, 300);
+    // Fade-In-Effekt: langsam von transparent zu sichtbar (opacity: 0 → 1)
+    fadeInText(titleElement, 1800, () => {
+        // Direkt nach Titel: Typing-Effekt für Text starten (ohne Wartezeit)
+        typeText(textElement, descriptionText, 20, () => {
+            // Nach Text: Button einblenden
+            understandBtn.style.transition = 'opacity 0.5s ease';
+            understandBtn.style.opacity = '1';
+            understandBtn.style.pointerEvents = 'auto';
+        });
     });
     
     understandBtn.addEventListener('click', () => {
