@@ -21,7 +21,7 @@ let currentDragX = 0;
 
 // Device Orientation
 let neutralTiltValue = null; // Neutraler Referenzwert für Neigung
-let tiltThreshold = 15; // Grad für klare Neigung (reduziert für schnellere Reaktion)
+let tiltThreshold = 12; // Grad für klare Neigung (reduziert für schnellere Reaktion)
 let tiltCheckTimeout = null;
 let lastDecisionTime = 0;
 let decisionCooldown = 600; // Mindestzeit zwischen Entscheidungen (ms)
