@@ -138,6 +138,9 @@ initCamera('environment');
 
 // Bestätigungs-Button Event Listener
 const confirmBtn = document.getElementById('confirmBtn');
+const noPhotosModal = document.getElementById('noPhotosModal');
+const closeNoPhotosModal = document.getElementById('closeNoPhotosModal');
+
 if (confirmBtn) {
     confirmBtn.addEventListener('click', () => {
         if (capturedPhotos.length > 0) {
@@ -146,7 +149,24 @@ if (confirmBtn) {
             // Zur Review-Seite navigieren
             window.location.href = 'review.html';
         } else {
-            alert('Please take at least one photo.');
+            // Zeige Modal statt Alert
+            if (noPhotosModal) {
+                noPhotosModal.style.display = 'flex';
+            }
+        }
+    });
+}
+
+// Modal schließen
+if (closeNoPhotosModal && noPhotosModal) {
+    closeNoPhotosModal.addEventListener('click', () => {
+        noPhotosModal.style.display = 'none';
+    });
+    
+    // Modal auch beim Klick auf Overlay schließen
+    noPhotosModal.addEventListener('click', (e) => {
+        if (e.target === noPhotosModal) {
+            noPhotosModal.style.display = 'none';
         }
     });
 }

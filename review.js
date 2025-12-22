@@ -614,10 +614,6 @@ async function initDeviceOrientation() {
 
 // Complete Screen anzeigen - Modal direkt öffnen
 function showCompleteScreen() {
-    // Gespeicherte Fotos aktualisieren (nur behaltene)
-    localStorage.setItem('keptPhotos', JSON.stringify(keptPhotos));
-    localStorage.setItem('capturedPhotos', JSON.stringify(keptPhotos));
-    
     // Progress und Instructions ausblenden, Bild bleibt sichtbar
     const instructions = document.querySelector('.review-instructions');
     const progress = document.querySelector('.review-progress');
@@ -635,17 +631,29 @@ function showCompleteScreen() {
         deviceOrientationListener = null;
     }
     
-    // Modal direkt öffnen (Overlay mit abgedunkeltem Hintergrund)
-    const albumModal = document.getElementById('albumModal');
-    const albumNameInput = document.getElementById('albumName');
-    if (albumModal) {
-        albumModal.style.display = 'flex';
-        // Kurze Verzögerung für besseres UX
-        setTimeout(() => {
-            if (albumNameInput) {
-                albumNameInput.focus();
-            }
-        }, 100);
+    // Prüfen ob alle Bilder gelöscht wurden
+    if (keptPhotos.length === 0) {
+        // Alle Bilder wurden gelöscht - zeige entsprechendes Modal
+        const allDeletedModal = document.getElementById('allDeletedModal');
+        if (allDeletedModal) {
+            allDeletedModal.style.display = 'flex';
+        }
+    } else {
+        // Es wurden Bilder behalten - zeige Album-Erstellungs-Modal
+        localStorage.setItem('keptPhotos', JSON.stringify(keptPhotos));
+        localStorage.setItem('capturedPhotos', JSON.stringify(keptPhotos));
+        
+        const albumModal = document.getElementById('albumModal');
+        const albumNameInput = document.getElementById('albumName');
+        if (albumModal) {
+            albumModal.style.display = 'flex';
+            // Kurze Verzögerung für besseres UX
+            setTimeout(() => {
+                if (albumNameInput) {
+                    albumNameInput.focus();
+                }
+            }, 100);
+        }
     }
 }
 
@@ -808,6 +816,18 @@ function initReviewPage() {
     
     // 5. Album Modal initialisieren
     initAlbumModal();
+    
+    // 5b. All Deleted Modal Event Listener hinzufügen
+    const backToHomeBtn = document.getElementById('backToHomeBtn');
+    if (backToHomeBtn) {
+        backToHomeBtn.addEventListener('click', () => {
+            // Alle temporären Daten löschen
+            localStorage.removeItem('capturedPhotos');
+            localStorage.removeItem('keptPhotos');
+            // Zur Homepage zurückkehren
+            window.location.href = 'index.html';
+        });
+    }
     
     // 6. Cancel Button Event Listener hinzufügen
     const cancelBtn = document.getElementById('cancelReviewBtn');
