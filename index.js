@@ -42,8 +42,18 @@ function optimizeAlbumGrid() {
     }
     
     // Berechne die optimale Größe für diese Anzahl von Spalten
-    const totalGapWidth = gap * (maxColsInRow - 1);
-    const optimalSize = Math.min(maxSize, Math.max(minSize, (availableWidth - totalGapWidth) / maxColsInRow));
+    let totalGapWidth = gap * (maxColsInRow - 1);
+    let optimalSize = Math.min(maxSize, Math.max(minSize, (availableWidth - totalGapWidth) / maxColsInRow));
+    
+    // Auf mobilen Geräten: Wenn nur ein Album vorhanden ist, berechne die Größe
+    // so, als ob zwei Alben nebeneinander wären
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile && albums.length === 1) {
+        // Berechne die Größe für 2 Alben in einer Reihe
+        const totalGapWidthForTwo = gap * (2 - 1);
+        optimalSize = Math.min(maxSize, Math.max(minSize, (availableWidth - totalGapWidthForTwo) / 2));
+        maxColsInRow = 1; // Nur ein Album wird angezeigt, aber in der Größe für 2 Alben
+    }
     
     // Setze die optimale Größe als Grid-Template-Columns
     // Verwende auto-fill, damit mehrere Zeilen erstellt werden können
