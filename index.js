@@ -1,3 +1,55 @@
+
+// Grid-Layout optimieren
+function optimizeAlbumGrid() {
+    const albumsContainer = document.getElementById('albumsContainer');
+    if (!albumsContainer || albumsContainer.style.display === 'none') return;
+    
+    const albums = albumsContainer.querySelectorAll('.album-card');
+    if (albums.length === 0) return;
+    
+    const containerWidth = albumsContainer.offsetWidth;
+    const gap = parseInt(getComputedStyle(albumsContainer).gap) || 20;
+    
+    // Min/Max Größen basierend auf Viewport
+    let minSize = 160;
+    let maxSize = 280;
+    
+    if (window.innerWidth <= 480) {
+        minSize = 120;
+        maxSize = 220;
+    } else if (window.innerWidth <= 768) {
+        minSize = 140;
+        maxSize = 260;
+    }
+    
+    // Berechne verfügbare Breite (Container-Breite minus Padding)
+    const containerPadding = parseInt(getComputedStyle(albumsContainer).paddingLeft) + 
+                             parseInt(getComputedStyle(albumsContainer).paddingRight);
+    const availableWidth = containerWidth - containerPadding;
+    
+    // Finde die maximale Anzahl von Alben, die in eine Zeile passen
+    // Die Größe muss mindestens minSize sein
+    let maxColsInRow = 1;
+    for (let cols = albums.length; cols >= 1; cols--) {
+        const totalGapWidth = gap * (cols - 1);
+        const sizeForCols = (availableWidth - totalGapWidth) / cols;
+        
+        // Wenn die Größe mindestens minSize ist, passen diese viele Alben in eine Zeile
+        if (sizeForCols >= minSize) {
+            maxColsInRow = cols;
+            break;
+        }
+    }
+    
+    // Berechne die optimale Größe für diese Anzahl von Spalten
+    const totalGapWidth = gap * (maxColsInRow - 1);
+    const optimalSize = Math.min(maxSize, Math.max(minSize, (availableWidth - totalGapWidth) / maxColsInRow));
+    
+    // Setze die optimale Größe als Grid-Template-Columns
+    // Verwende auto-fill, damit mehrere Zeilen erstellt werden können
+    albumsContainer.style.gridTemplateColumns = `repeat(${maxColsInRow}, ${optimalSize}px)`;
+}
+
 // Alben laden und anzeigen
 function loadAlbums() {
     const albums = JSON.parse(localStorage.getItem('albums') || '[]');
@@ -64,6 +116,11 @@ function loadAlbums() {
             openAlbumOptionsModal(album.id, album.name);
         });
     });
+    
+    // Grid-Layout optimieren nach dem Laden
+    setTimeout(() => {
+        optimizeAlbumGrid();
+    }, 0);
 }
 
 // Click-Effekt für den FAB Button
@@ -193,5 +250,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Onboarding abgeschlossen - Alben laden
     loadAlbums();
+    
+    // Resize-Listener für Grid-Optimierung
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            optimizeAlbumGrid();
+        }, 150);
+    });
 });
 

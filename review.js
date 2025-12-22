@@ -73,7 +73,7 @@ function updateProgress() {
     
     const total = photos.length;
     const current = currentIndex + 1;
-    progressText.textContent = `${current} / ${total}`;
+    progressText.textContent = `${current} von ${total}`;
     
     const percentage = (current / total) * 100;
     progressFill.style.width = `${percentage}%`;
@@ -102,6 +102,11 @@ function showNextImage() {
         currentImage.src = photos[currentIndex];
         updateProgress();
         resetSwipeFeedback();
+        
+        // Skalierung nach Bildwechsel aktualisieren
+        setTimeout(() => {
+            scaleReviewContent();
+        }, 100);
     } else {
         // Alle Bilder durchgegangen
         showCompleteScreen();
@@ -711,6 +716,82 @@ function closeAlbumModal() {
 }
 
 // Initialisierung
+// Skaliere Review-Content, damit alles sichtbar ist
+function scaleReviewContent() {
+    const container = document.querySelector('.review-container');
+    const wrapper = document.querySelector('.review-content-wrapper');
+    
+    if (!container || !wrapper) return;
+    
+    // Warte kurz, damit DOM gerendert ist
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            // Temporär Skalierung zurücksetzen, um natürliche Größe zu messen
+            wrapper.style.transform = 'scale(1)';
+            
+            // Hole tatsächliche Padding-Werte aus den berechneten Styles
+            const containerStyle = getComputedStyle(container);
+            const paddingLeft = parseFloat(containerStyle.paddingLeft) || 0;
+            const paddingRight = parseFloat(containerStyle.paddingRight) || 0;
+            const paddingTop = parseFloat(containerStyle.paddingTop) || 0;
+            const paddingBottom = parseFloat(containerStyle.paddingBottom) || 0;
+            
+            const containerRect = container.getBoundingClientRect();
+            
+            // Verfügbare Fläche im Container (berücksichtigt tatsächliches Padding)
+            const availableWidth = containerRect.width - paddingLeft - paddingRight;
+            const availableHeight = containerRect.height - paddingTop - paddingBottom;
+            
+            // Warte kurz, damit Browser die natürliche Größe berechnet hat
+            setTimeout(() => {
+                const wrapperRect = wrapper.getBoundingClientRect();
+                const naturalWidth = wrapperRect.width;
+                const naturalHeight = wrapperRect.height;
+                
+                if (naturalWidth === 0 || naturalHeight === 0) {
+                    // Falls noch nicht gerendert, erneut versuchen
+                    setTimeout(scaleReviewContent, 50);
+                    return;
+                }
+                
+                // Kleiner Sicherheitspuffer (4px auf jeder Seite) um sicherzustellen,
+                // dass nichts abgeschnitten wird
+                const safetyPadding = 8;
+                const safeAvailableWidth = Math.max(0, availableWidth - safetyPadding);
+                const safeAvailableHeight = Math.max(0, availableHeight - safetyPadding);
+                
+                // Berechne Skalierungsfaktoren
+                const scaleX = safeAvailableWidth / naturalWidth;
+                const scaleY = safeAvailableHeight / naturalHeight;
+                
+                // Verwende den kleineren Skalierungsfaktor, um sicherzustellen, dass alles passt
+                // Maximal 1 (keine Vergrößerung über natürliche Größe hinaus)
+                const scale = Math.min(scaleX, scaleY, 1);
+                
+                // Wende Skalierung an
+                wrapper.style.transform = `scale(${scale})`;
+                wrapper.style.transformOrigin = 'center center';
+            }, 10);
+        });
+    });
+}
+
+// Abbrechen-Funktion
+function cancelReview() {
+    // Device Orientation Listener entfernen falls vorhanden
+    if (deviceOrientationListener) {
+        window.removeEventListener('deviceorientation', deviceOrientationListener);
+        deviceOrientationListener = null;
+    }
+    
+    // Temporäre Daten löschen
+    localStorage.removeItem('capturedPhotos');
+    localStorage.removeItem('keptPhotos');
+    
+    // Zur Homepage zurückkehren
+    window.location.href = 'index.html';
+}
+
 function initReviewPage() {
     // 1. Bilder laden (initialisiert auch DOM-Elemente)
     loadPhotos();
@@ -727,6 +808,31 @@ function initReviewPage() {
     
     // 5. Album Modal initialisieren
     initAlbumModal();
+    
+    // 6. Cancel Button Event Listener hinzufügen
+    const cancelBtn = document.getElementById('cancelReviewBtn');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', cancelReview);
+    }
+    
+    // 7. Content skalieren (nach kurzer Verzögerung, damit Bilder geladen sind)
+    setTimeout(() => {
+        scaleReviewContent();
+    }, 300);
+    
+    // Skalierung bei Resize aktualisieren
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(scaleReviewContent, 150);
+    });
+    
+    // Skalierung auch nach Bildladung aktualisieren
+    if (currentImage) {
+        currentImage.addEventListener('load', () => {
+            setTimeout(scaleReviewContent, 50);
+        });
+    }
 }
 
 // Initialisierung nach DOM laden

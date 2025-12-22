@@ -8,22 +8,27 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="review-page">
+    <button class="review-cancel-btn" id="cancelReviewBtn" aria-label="Cancel review">×</button>
     <div class="review-container">
-        <div class="review-progress">
-            <div class="progress-text" id="progressText">1 / 0</div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
+        <div class="review-content-wrapper">
+            <div class="review-progress">
+                <div class="progress-text" id="progressText">1 von 0</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
             </div>
-        </div>
-        
-        <div class="image-container" id="imageContainer">
-            <img id="currentImage" class="review-image" src="" alt="Photo">
-            <div class="swipe-feedback" id="swipeFeedback"></div>
-        </div>
-        
-        <div class="review-instructions">
-            <p class="instruction-text">Swipe right / Right arrow / Tilt phone right = keep</p>
-            <p class="instruction-text">Swipe left / Left arrow / Tilt phone left = delete</p>
+            
+            <div class="image-container" id="imageContainer">
+                <img id="currentImage" class="review-image" src="" alt="Photo">
+                <div class="swipe-feedback" id="swipeFeedback"></div>
+            </div>
+            
+            <div class="review-instructions">
+                <p class="instruction-text instruction-mobile">Swipe right / Right arrow / Tilt phone right = keep</p>
+                <p class="instruction-text instruction-desktop">Right arrow key = keep</p>
+                <p class="instruction-text instruction-mobile">Swipe left / Left arrow / Tilt phone left = delete</p>
+                <p class="instruction-text instruction-desktop">Left arrow key = delete</p>
+            </div>
         </div>
     </div>
     
