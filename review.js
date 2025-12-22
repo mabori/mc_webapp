@@ -21,10 +21,11 @@ let currentDragX = 0;
 
 // Device Orientation
 let neutralTiltValue = null; // Neutraler Referenzwert für Neigung
-let tiltThreshold = 18; // Grad für klare Neigung
+let tiltThreshold = 15; // Grad für klare Neigung (reduziert für schnellere Reaktion)
 let tiltCheckTimeout = null;
 let lastDecisionTime = 0;
 let decisionCooldown = 600; // Mindestzeit zwischen Entscheidungen (ms)
+let tiltStableTime = 600; // Zeit für stabile Neigung bevor Entscheidung getroffen wird (ms)
 let deviceOrientationListener = null; // Referenz zum Event Listener
 
 // Bilder aus localStorage laden
@@ -451,8 +452,8 @@ function handleDeviceOrientation(event) {
             }
             updateSwipeFeedback('keep', Math.min(1, Math.abs(relativeTilt) / maxTiltForVisualization));
             
-            // Entscheidung treffen nach 800ms stabiler Neigung über Threshold
-            if (!tiltCheckTimeout && now - tiltStartTime >= 800 && relativeTilt > tiltThreshold) {
+            // Entscheidung treffen nach stabiler Neigung über Threshold
+            if (!tiltCheckTimeout && now - tiltStartTime >= tiltStableTime && relativeTilt > tiltThreshold) {
                 tiltCheckTimeout = setTimeout(() => {
                     // Nochmal prüfen ob immer noch eindeutig geneigt
                     const currentRelativeTilt = currentTiltValue - neutralTiltValue;
@@ -493,8 +494,8 @@ function handleDeviceOrientation(event) {
             }
             updateSwipeFeedback('delete', Math.min(1, Math.abs(relativeTilt) / maxTiltForVisualization));
             
-            // Entscheidung treffen nach 800ms stabiler Neigung über Threshold
-            if (!tiltCheckTimeout && now - tiltStartTime >= 800 && relativeTilt < -tiltThreshold) {
+            // Entscheidung treffen nach stabiler Neigung über Threshold
+            if (!tiltCheckTimeout && now - tiltStartTime >= tiltStableTime && relativeTilt < -tiltThreshold) {
                 tiltCheckTimeout = setTimeout(() => {
                     // Nochmal prüfen ob immer noch eindeutig geneigt
                     const currentRelativeTilt = currentTiltValue - neutralTiltValue;

@@ -16,6 +16,23 @@ function typeText(element, text, speed = 50, callback) {
     type();
 }
 
+// Fade-In-Effekt Funktion
+function fadeInText(element, duration = 1200, callback) {
+    // Text sofort setzen, aber unsichtbar
+    element.style.opacity = '0';
+    element.style.transition = `opacity ${duration}ms ease-in-out`;
+    
+    // Fade-In starten nach kurzer Verzögerung
+    setTimeout(() => {
+        element.style.opacity = '1';
+        
+        // Callback nach Animation
+        if (callback) {
+            setTimeout(callback, duration);
+        }
+    }, 50);
+}
+
 // Verstanden Button - Weiterleitung zur Berechtigungsseite
 document.addEventListener('DOMContentLoaded', () => {
     const titleElement = document.getElementById('onboardingTitle');
@@ -25,8 +42,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const titleText = 'Memories';
     const descriptionText = 'Mit Memories können Sie Ihre besonderen Momente in persönlichen Alben speichern und für immer bewahren.';
     
-    // Typing-Effekt für Titel starten
-    typeText(titleElement, titleText, 200, () => {
+    // Text sofort setzen (unsichtbar)
+    titleElement.textContent = titleText;
+    
+    // Fade-In-Effekt für Titel starten
+    fadeInText(titleElement, 1200, () => {
         // Nach Titel: Typing-Effekt für Text starten
         setTimeout(() => {
             typeText(textElement, descriptionText, 30, () => {
