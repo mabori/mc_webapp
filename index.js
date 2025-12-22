@@ -10,22 +10,31 @@ function optimizeAlbumGrid() {
     const containerWidth = albumsContainer.offsetWidth;
     const gap = parseInt(getComputedStyle(albumsContainer).gap) || 20;
     
-    // Min/Max Größen basierend auf Viewport
-    let minSize = 160;
-    let maxSize = 280;
-    
-    if (window.innerWidth <= 480) {
-        minSize = 120;
-        maxSize = 220;
-    } else if (window.innerWidth <= 768) {
-        minSize = 140;
-        maxSize = 260;
-    }
-    
     // Berechne verfügbare Breite (Container-Breite minus Padding)
     const containerPadding = parseInt(getComputedStyle(albumsContainer).paddingLeft) + 
                              parseInt(getComputedStyle(albumsContainer).paddingRight);
     const availableWidth = containerWidth - containerPadding;
+    
+    // Min/Max Größen basierend auf Viewport
+    let minSize = 160;
+    let maxSize = 280;
+    
+    const isMobile = window.innerWidth <= 768;
+    
+    if (window.innerWidth <= 480) {
+        minSize = 120;
+        maxSize = 220;
+    } else if (isMobile) {
+        minSize = 140;
+        maxSize = 260;
+    }
+    
+    // Auf Handys: Maximale Größe auf die Größe setzen, die zwei Alben nebeneinander hätten
+    if (isMobile) {
+        const totalGapWidthForTwo = gap * (2 - 1);
+        const sizeForTwoAlbums = (availableWidth - totalGapWidthForTwo) / 2;
+        maxSize = Math.max(minSize, sizeForTwoAlbums);
+    }
     
     // Finde die maximale Anzahl von Alben, die in eine Zeile passen
     // Die Größe muss mindestens minSize sein
