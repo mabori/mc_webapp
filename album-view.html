@@ -3,25 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Memories - Create your first memory album">
-    <title>Memories</title>
+    <meta name="description" content="Album Slideshow - Memories">
+    <title>Album - Memories</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-    <div class="main-content">
-        <h1 class="main-heading" id="mainHeading" style="display: none;">Memories</h1>
-        <div class="albums-container" id="albumsContainer">
-            <!-- Albums will be dynamically inserted here -->
+<body class="album-view-page">
+    <div class="album-view-container">
+        <a href="index.html" class="back-button" aria-label="Back to home">
+            <span class="back-icon">←</span>
+        </a>
+        
+        <button class="album-options-btn" id="albumOptionsBtn" aria-label="Album options">⋮</button>
+        
+        <div class="album-header">
+            <!-- Leer, nur für Layout-Kompatibilität -->
         </div>
-        <div class="no-albums" id="noAlbums">
-            <h1 class="main-heading">Memories</h1>
-            <p class="subtitle">Create your first memory album</p>
+        
+        <div class="slideshow-container">
+            <div class="album-view-header-overlay">
+                <h1 class="album-view-title" id="albumTitle">Album</h1>
+                <p class="album-view-location" id="albumLocation"></p>
+            </div>
+            <div class="slideshow-image-wrapper">
+                <img id="currentPhoto" class="slideshow-image" src="" alt="Photo">
+            </div>
+            
+        </div>
+        
+        <div class="slideshow-counter">
+            <span id="photoCounter">1 / 1</span>
         </div>
     </div>
-    
-    <a href="camera.html" class="fab-button" aria-label="Create new memory album">
-        <span class="fab-icon">add</span>
-    </a>
     
     <!-- Album Options Modal -->
     <div class="modal-overlay" id="albumOptionsModal" style="display: none;">
@@ -41,6 +53,8 @@
         </div>
     </div>
     
-    <script src="index.js"></script>
+    <script src="album-view.js"></script>
 </body>
 </html>
+
+

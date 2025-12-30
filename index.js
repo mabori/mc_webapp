@@ -88,6 +88,11 @@ function loadAlbums() {
         previewImg.alt = album.name;
         previewImg.className = 'album-preview';
         
+        // Nach Bildladung Textgrößen anpassen
+        previewImg.addEventListener('load', () => {
+            adjustAlbumTextSizes();
+        });
+        
         const albumInfo = document.createElement('div');
         albumInfo.className = 'album-info';
         
@@ -117,6 +122,16 @@ function loadAlbums() {
         albumCard.appendChild(previewImg);
         albumCard.appendChild(albumInfo);
         
+        // Album-Karte anklickbar machen
+        albumCard.style.cursor = 'pointer';
+        albumCard.addEventListener('click', (e) => {
+            // Nicht öffnen wenn Options-Button geklickt wurde
+            if (e.target.closest('.album-options-btn')) {
+                return;
+            }
+            window.location.href = `album-view.html?id=${album.id}`;
+        });
+        
         albumsContainer.appendChild(albumCard);
         
         // Event Listener für Options Button
@@ -129,7 +144,107 @@ function loadAlbums() {
     // Grid-Layout optimieren nach dem Laden
     setTimeout(() => {
         optimizeAlbumGrid();
+        // Warte kurz, damit die Bilder geladen sind
+        setTimeout(() => {
+            adjustAlbumTextSizes();
+        }, 100);
     }, 0);
+}
+
+// Schriftgrößen dynamisch an Kartengröße anpassen
+function adjustAlbumTextSizes() {
+    const albumCards = document.querySelectorAll('.album-card');
+    
+    albumCards.forEach(card => {
+        const cardWidth = card.offsetWidth;
+        const albumInfo = card.querySelector('.album-info');
+        const albumName = card.querySelector('.album-name');
+        const albumLocation = card.querySelector('.album-location');
+        const albumOptionsBtn = card.querySelector('.album-options-btn');
+        
+        if (!albumInfo || !albumName || !albumLocation) return;
+        
+        // Basis-Schriftgröße basierend auf Kartengröße
+        // Für kleine Karten (120px): ~0.7rem, für große (280px): ~1rem
+        const minCardSize = 120;
+        const maxCardSize = 280;
+        const normalizedSize = Math.max(0, Math.min(1, (cardWidth - minCardSize) / (maxCardSize - minCardSize)));
+        const baseFontSize = 0.7 + (normalizedSize * 0.3); // 0.7rem bis 1rem
+        card.style.fontSize = `${baseFontSize}rem`;
+        
+        // Info-Höhe berechnen
+        const infoHeight = albumInfo.offsetHeight;
+        const infoPadding = parseFloat(getComputedStyle(albumInfo).paddingTop) + 
+                          parseFloat(getComputedStyle(albumInfo).paddingBottom);
+        const infoGap = parseFloat(getComputedStyle(albumInfo).gap) || 0;
+        const availableHeight = infoHeight - infoPadding - infoGap;
+        
+        if (availableHeight > 0) {
+            // Line-height Verhältnisse (minimal)
+            const nameLineHeightRatio = 1.05;
+            const locationLineHeightRatio = 1.0;
+            const nameMarginBottomEm = 0.15; // margin-bottom in em
+            
+            // Basis-Schriftgröße der Karte für em-Berechnungen
+            const cardFontSizePx = parseFloat(getComputedStyle(card).fontSize) || 16;
+            const nameMarginBottomPx = nameMarginBottomEm * cardFontSizePx;
+            
+            // Aufteilung des verfügbaren Platzes: Name bekommt mehr Platz, Ort weniger
+            // Bei großen Alben mehr Platz für Name nutzen
+            const nameAllocatedRatio = cardWidth > 200 ? 0.78 : 0.72; // Mehr Platz bei großen Alben
+            const nameAllocatedHeight = availableHeight * nameAllocatedRatio - nameMarginBottomPx;
+            const locationAllocatedHeight = availableHeight * (1 - nameAllocatedRatio);
+            
+            // Name: Berechnung basierend auf verfügbarer Höhe (maximal 2 Zeilen)
+            // Verwende direkte Berechnung für größere Schriftgrößen bei großen Alben
+            const maxNameFontSizeForHeight = nameAllocatedHeight / (nameLineHeightRatio * 16 * 2); // Max 2 Zeilen
+            // Bei großen Alben zusätzlichen Faktor anwenden für deutlich größere Schrift
+            const sizeMultiplier = cardWidth > 200 ? 1.3 : (cardWidth > 160 ? 1.15 : 1.0); // Größerer Multiplikator bei großen Alben
+            const finalNameFontSize = Math.max(0.85, maxNameFontSizeForHeight * sizeMultiplier);
+            
+            albumName.style.fontSize = `${finalNameFontSize}rem`;
+            albumName.style.lineHeight = `${nameLineHeightRatio}`;
+            albumName.style.margin = '0';
+            albumName.style.marginBottom = '0.15em';
+            albumName.style.padding = '0';
+            
+            // Ort: Berechnung basierend auf verfügbarer Höhe (1 Zeile)
+            // Ort soll etwa 65% der Namensgröße sein, aber nicht größer als der verfügbare Platz erlaubt
+            const maxLocationFontSizeForHeight = locationAllocatedHeight / (locationLineHeightRatio * 16);
+            const locationFontSizeFromName = finalNameFontSize * 0.65;
+            // Bei großen Alben auch Ort etwas größer machen
+            const finalLocationFontSize = Math.max(0.6, Math.min(maxLocationFontSizeForHeight * sizeMultiplier, locationFontSizeFromName));
+            
+            albumLocation.style.fontSize = `${finalLocationFontSize}rem`;
+            albumLocation.style.lineHeight = `${locationLineHeightRatio}`;
+            albumLocation.style.margin = '0';
+            albumLocation.style.marginTop = '0';
+            albumLocation.style.padding = '0';
+        }
+        
+        // Header explizit auf Inhalt anpassen
+        const albumHeader = card.querySelector('.album-header');
+        if (albumHeader) {
+            albumHeader.style.margin = '0';
+            albumHeader.style.marginBottom = '0';
+            albumHeader.style.padding = '0';
+            albumHeader.style.height = 'auto';
+            albumHeader.style.maxHeight = 'fit-content';
+            albumHeader.style.lineHeight = '0';
+        }
+        
+        // Options-Button Größe anpassen - im gleichen Stil wie Name und Ort
+        if (albumOptionsBtn) {
+            // Berechne Button-Größe basierend auf Album-Größe mit gleichem Multiplikator
+            const sizeMultiplier = cardWidth > 200 ? 1.3 : (cardWidth > 160 ? 1.15 : 1.0);
+            const btnFontSize = baseFontSize * 1.1 * sizeMultiplier; // Basis * 1.1 * Multiplikator für große Alben
+            albumOptionsBtn.style.fontSize = `${btnFontSize}rem`;
+            albumOptionsBtn.style.width = `${btnFontSize}rem`;
+            albumOptionsBtn.style.height = `${btnFontSize}rem`;
+            albumOptionsBtn.style.minWidth = `${btnFontSize}rem`;
+            albumOptionsBtn.style.minHeight = `${btnFontSize}rem`;
+        }
+    });
 }
 
 // Click-Effekt für den FAB Button
@@ -266,6 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
         clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(() => {
             optimizeAlbumGrid();
+            adjustAlbumTextSizes();
         }, 150);
     });
 });

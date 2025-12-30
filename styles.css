@@ -1,35 +1,28 @@
 /* Farbpalette - Helles Theme */
 :root {
-    /* Primärfarben */
     --primary-color: #4A90E2;
     --primary-hover: #357ABD;
     --primary-light: #E8F4FD;
     
-    /* Sekundärfarben */
     --secondary-color: #7B8A9B;
     --secondary-light: #F0F2F5;
     
-    /* Textfarben */
     --primary-text-color: #2C3E50;
     --secondary-text-color: #6C757D;
     --text-light: #FFFFFF;
     
-    /* Hintergrundfarben */
     --bg-primary: #FFFFFF;
     --bg-secondary: #F8F9FA;
     --bg-accent: #F1F3F5;
     
-    /* Border/Outline */
     --border-color: #DEE2E6;
     --border-light: #E9ECEF;
     
-    /* Statusfarben */
     --success-color: #28A745;
     --warning-color: #FFC107;
     --error-color: #DC3545;
     --info-color: #17A2B8;
     
-    /* Schatten */
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
     --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
@@ -48,10 +41,9 @@ body {
     color: var(--primary-text-color);
     line-height: 1.6;
     min-height: 100vh;
-    overflow: hidden; /* Verhindert Scrollen der ganzen Seite */
+    overflow: hidden;
 }
 
-/* Container für zentrierten Inhalt */
 .container {
     width: 100%;
     max-width: 1200px;
@@ -59,20 +51,18 @@ body {
     padding: 0 20px;
 }
 
-/* Zentrierter Hauptinhalt */
 .main-content {
     display: flex;
     flex-direction: column;
     align-items: center;
     height: 100vh;
     padding: 24px;
-    padding-bottom: 100px; /* Platz für FAB Button */
-    overflow: hidden; /* Verhindert Scrollen der ganzen Seite */
+    padding-bottom: 100px;
+    overflow: hidden;
     box-sizing: border-box;
     background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
 }
 
-/* Alben Container - Responsives Grid */
 .albums-container {
     display: none;
     grid-template-columns: repeat(auto-fit, minmax(160px, 280px));
@@ -115,7 +105,6 @@ body {
     background: var(--secondary-color);
 }
 
-/* Album Karte */
 .album-card {
     position: relative;
     aspect-ratio: 1;
@@ -164,17 +153,19 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
+    align-items: flex-start;
     background-color: var(--bg-primary);
     position: relative;
     overflow: visible;
     box-sizing: border-box;
-    gap: 0.25em; /* Abstand zwischen Name-Zeile und Ort-Zeile */
+    gap: 0;
 }
 
 .album-header {
     display: flex;
+    flex-direction: row;
     align-items: flex-start;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: 0.4em;
     margin: 0;
     padding: 0;
@@ -182,29 +173,41 @@ body {
     min-width: 0;
     flex: 0 0 auto;
     min-height: 0;
+    max-height: fit-content;
     box-sizing: border-box;
+    text-align: left;
+    line-height: 0;
+    overflow: visible;
 }
 
 .album-name {
-    font-size: clamp(0.75em, 0.95em, 1em);
+    font-size: 1em;
     font-weight: 600;
     color: var(--primary-text-color);
     margin: 0;
+    margin-bottom: 0.15em;
     padding: 0;
-    overflow: visible;
-    display: block;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
     white-space: normal;
-    flex: 0 0 auto;
+    flex: 1 1 auto;
     min-width: 0;
     letter-spacing: -0.01em;
-    line-height: 1.25;
+    line-height: 1.05;
     word-wrap: break-word;
     hyphens: auto;
     box-sizing: border-box;
-    max-height: calc(1.25em * 2); /* maximal zwei Zeilen */
+    text-overflow: ellipsis;
+    text-align: left;
+    align-self: flex-start;
+    height: fit-content;
 }
 
 .album-options-btn {
+    position: relative;
     background: none;
     border: none;
     color: var(--secondary-text-color);
@@ -223,12 +226,43 @@ body {
     min-width: 1.1em;
     min-height: 1.1em;
     align-self: flex-start;
-    margin-top: 0.05em;
+    margin-top: 0;
+    margin-bottom: 0.15em;
 }
 
 .album-options-btn:hover {
     background-color: var(--bg-accent);
     color: var(--primary-text-color);
+}
+
+.album-view-page .album-options-btn {
+    position: absolute;
+    top: max(20px, env(safe-area-inset-top, 20px) + 20px);
+    right: max(20px, env(safe-area-inset-right, 20px) + 20px);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    z-index: 100;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
+    padding: 0;
+    margin: 0;
+    min-width: 48px;
+    min-height: 48px;
+    border: none;
+    cursor: pointer;
+}
+
+.album-view-page .album-options-btn:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+    transform: scale(1.1);
+    color: var(--text-light);
 }
 
 .album-options-menu {
@@ -275,24 +309,29 @@ body {
 }
 
 .album-location {
-    font-size: clamp(0.65em, 0.78em, 0.9em);
+    font-size: 0.75em;
     color: var(--secondary-text-color);
     margin: 0;
     padding: 0;
-    overflow: visible;
-    text-overflow: clip;
-    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     display: flex;
     align-items: center;
+    justify-content: flex-start;
     gap: 0.3em;
     font-weight: 400;
-    line-height: 1.2;
+    line-height: 1.0;
     flex: 0 0 auto;
     min-width: 0;
     width: 100%;
-    min-height: 1.2em;
+    min-height: auto;
+    max-height: fit-content;
     box-sizing: border-box;
     word-wrap: break-word;
+    text-align: left;
+    align-self: flex-start;
+    height: fit-content;
 }
 
 .location-icon {
@@ -303,7 +342,6 @@ body {
     min-width: 1em;
 }
 
-/* Keine Alben Nachricht */
 .no-albums {
     display: flex;
     flex-direction: column;
@@ -313,7 +351,6 @@ body {
     text-align: center;
 }
 
-/* Überschrift "Memories" */
 .main-heading {
     font-size: 3rem;
     font-weight: 700;
@@ -323,7 +360,6 @@ body {
     line-height: 1.1;
 }
 
-/* Wenn Alben vorhanden sind, Heading oben */
 .main-content > .main-heading {
     margin-bottom: 0;
     margin-top: 0;
@@ -335,14 +371,12 @@ body {
     font-weight: 600;
 }
 
-/* Responsive: Heading zentriert auf allen Geräten */
 @media (max-width: 768px) {
     .main-content > .main-heading {
         font-size: 1.75rem;
     }
 }
 
-/* Untertitel */
 .subtitle {
     font-size: 1rem;
     color: var(--secondary-text-color);
@@ -352,7 +386,6 @@ body {
     margin-top: 8px;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
     .main-heading {
         font-size: 2.25rem;
@@ -378,31 +411,15 @@ body {
     
     .album-info {
         padding: 0.55em 0.65em;
-        gap: 0.2em;
+        padding-right: 1.8em;
+        gap: 0;
     }
     
     .album-header {
-        flex: 0 0 60%;
-        max-height: 60%;
-        gap: 0.35em;
-    }
-    
-    .album-name {
-        font-size: 0.9em;
-        line-height: 1.2;
-        max-height: calc(1.2em * 2);
-    }
-    
-    .album-options-btn {
-        font-size: 1.05em;
-        width: 1.05em;
-        height: 1.05em;
-        min-width: 1.05em;
-        min-height: 1.05em;
+        gap: 0;
     }
     
     .album-location {
-        font-size: 0.75em;
         flex: 0 0 auto;
         min-height: 1.15em;
         line-height: 1.15;
@@ -429,34 +446,20 @@ body {
     
     .album-info {
         padding: 0.5em 0.6em;
-        gap: 0.18em;
+        gap: 0;
     }
     
     .album-header {
-        flex: 0 0 auto;
-        gap: 0.3em;
-    }
-    
-    .album-name {
-        font-size: clamp(0.65em, 0.85em, 0.9em);
-        line-height: 1.18;
-        max-height: calc(1.18em * 2);
+        gap: 0.2em;
     }
     
     .album-options-btn {
-        font-size: 1em;
-        width: 1em;
-        height: 1em;
-        min-width: 1em;
-        min-height: 1em;
         padding: 0.08em;
     }
     
     .album-location {
-        font-size: clamp(0.55em, 0.72em, 0.8em);
         flex: 0 0 auto;
-        min-height: 1.1em;
-        line-height: 1.1;
+        min-height: auto;
         gap: 0.22em;
     }
     
@@ -465,14 +468,12 @@ body {
     }
 }
 
-/* Floating Action Button (FAB) */
 .fab-button {
     position: fixed;
     bottom: max(24px, calc(env(safe-area-inset-bottom, 0px) + 24px));
     right: max(24px, calc(env(safe-area-inset-right, 0px) + 24px));
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
+    padding: clamp(10px, 2vw, 16px) clamp(20px, 4vw, 32px);
+    border-radius: clamp(20px, 5vw, 32px);
     background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
     color: var(--text-light);
     border: none;
@@ -484,6 +485,7 @@ body {
     justify-content: center;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1000;
+    min-height: 44px;
 }
 
 .fab-button:hover {
@@ -500,54 +502,34 @@ body {
 }
 
 .fab-icon {
-    font-size: 2.25rem;
-    font-weight: 300;
+    font-size: clamp(0.875rem, 2.5vw, 1.125rem);
+    font-weight: 500;
     line-height: 1;
     user-select: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     margin: 0;
     padding: 0;
-    width: 100%;
-    height: 100%;
+    white-space: nowrap;
 }
 
-/* Mobile Anpassungen - Extra Abstand für Browser-UI */
 @media (max-width: 768px) {
     .fab-button {
         bottom: max(24px, calc(env(safe-area-inset-bottom, 0px) + 24px));
         right: max(24px, calc(env(safe-area-inset-right, 0px) + 24px));
-        width: 60px;
-        height: 60px;
-    }
-    
-    .fab-icon {
-        font-size: 2rem;
     }
 }
 
-/* Extra Sicherheit für kleine Bildschirme */
 @media (max-width: 480px) {
     .fab-button {
         bottom: max(24px, calc(env(safe-area-inset-bottom, 0px) + 24px));
         right: max(24px, calc(env(safe-area-inset-right, 0px) + 24px));
-        width: 56px;
-        height: 56px;
-    }
-    
-    .fab-icon {
-        font-size: 1.875rem;
     }
 }
 
-/* Click-Effekt für FAB */
 .fab-button.fab-clicked {
     transform: scale(0.85);
     background-color: var(--primary-hover);
 }
 
-/* Link-Styling für FAB entfernen */
 .fab-button {
     text-decoration: none;
 }
@@ -562,7 +544,7 @@ body {
     position: relative;
     width: 100%;
     height: 100vh;
-    height: 100dvh; /* Dynamische Viewport-Höhe für mobile Browser */
+    height: 100dvh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -572,18 +554,16 @@ body {
 .camera-video {
     width: 100%;
     height: 100vh;
-    height: 100dvh; /* Dynamische Viewport-Höhe für mobile Browser */
+    height: 100dvh;
     object-fit: cover;
     position: absolute;
     top: 0;
     left: 0;
-    /* Keine Steuerelemente anzeigen */
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
 }
 
-/* Native Video-Controls komplett verstecken */
 .camera-video::-webkit-media-controls {
     display: none !important;
 }
@@ -604,7 +584,6 @@ body {
     display: none !important;
 }
 
-/* Overlay für quadratische Ansicht */
 .camera-overlay {
     position: absolute;
     top: 0;
@@ -716,7 +695,6 @@ body {
     font-weight: 300;
 }
 
-/* Review Cancel Button */
 .review-cancel-btn {
     position: fixed;
     top: max(20px, env(safe-area-inset-top, 20px) + 20px);
@@ -749,7 +727,6 @@ body {
     transform: scale(0.95);
 }
 
-/* Confirm Button */
 .confirm-button {
     position: absolute;
     top: max(20px, env(safe-area-inset-top, 20px) + 20px);
@@ -786,7 +763,6 @@ body {
     font-weight: 600;
 }
 
-/* Camera Switch Button */
 .camera-switch-btn {
     position: absolute;
     bottom: max(50px, calc(env(safe-area-inset-bottom, 0px) + 50px));
@@ -822,7 +798,6 @@ body {
     font-weight: 600;
 }
 
-/* Photo Stack Container */
 .photo-stack-container {
     position: fixed;
     bottom: max(50px, calc(env(safe-area-inset-bottom, 0px) + 50px));
@@ -830,7 +805,6 @@ body {
     z-index: 90;
 }
 
-/* Photo Stack */
 .photo-stack {
     position: relative;
     width: 80px;
@@ -838,7 +812,6 @@ body {
     display: none;
 }
 
-/* Photo Counter */
 .photo-counter {
     display: none;
     align-items: center;
@@ -878,7 +851,6 @@ body {
     display: block;
 }
 
-/* Responsive Anpassungen für Kamera-Seite */
 @media (max-width: 768px) {
     .camera-capture-btn {
         width: 72px;
@@ -966,7 +938,7 @@ body {
 .review-container {
     width: 100vw;
     height: 100vh;
-    height: 100dvh; /* Dynamische Viewport-Höhe für mobile Browser */
+    height: 100dvh;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1109,7 +1081,6 @@ body {
     line-height: 1.4;
 }
 
-/* Responsive Anpassungen für Review-Seite */
 @media (max-width: 768px) {
     .review-container {
         padding: 16px;
@@ -1134,7 +1105,6 @@ body {
     }
 }
 
-/* Desktop-Anpassungen für Review-Seite */
 @media (min-width: 769px) {
     .review-container {
         padding: 20px;
@@ -1189,7 +1159,6 @@ body {
     }
 }
 
-/* Mobile Instructions - nur auf mobilen Geräten anzeigen */
 .instruction-desktop {
     display: none;
 }
@@ -1278,7 +1247,6 @@ body {
     transform: translateY(0);
 }
 
-/* Responsive Anpassungen für Review-Seite */
 @media (max-width: 768px) {
     .review-container {
         padding: 16px;
@@ -1525,7 +1493,6 @@ body {
     transform: scale(0.98);
 }
 
-/* Responsive Modal */
 @media (max-width: 480px) {
     .modal-content {
         padding: 24px 20px;
@@ -1573,7 +1540,7 @@ body {
     color: var(--primary-text-color);
     margin: 0;
     letter-spacing: -0.03em;
-    min-height: 1.2em; /* Verhindert Layout-Shift während Typing */
+    min-height: 1.2em;
 }
 
 .onboarding-text {
@@ -1582,7 +1549,7 @@ body {
     color: var(--secondary-text-color);
     margin: 0;
     max-width: 500px;
-    min-height: 4.8em; /* Verhindert Layout-Shift während Typing (3 Zeilen * 1.6 line-height) */
+    min-height: 4.8em;
 }
 
 .onboarding-btn {
@@ -1825,7 +1792,6 @@ body {
     color: var(--primary-color);
 }
 
-/* Responsive Anpassungen für Onboarding */
 @media (max-width: 768px) {
     .onboarding-title {
         font-size: 2.5rem;
@@ -1918,6 +1884,198 @@ body {
     
     .permissions-note {
         font-size: 0.875rem;
+    }
+}
+
+/* ===== ALBUM VIEW / SLIDESHOW ===== */
+.album-view-page {
+    overflow: hidden;
+    background-color: var(--bg-primary);
+}
+
+.album-view-container {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: max(8px, env(safe-area-inset-top, 0px) + 8px) max(8px, env(safe-area-inset-left, 0px) + 8px) max(8px, calc(env(safe-area-inset-bottom, 0px) + 8px)) max(8px, env(safe-area-inset-right, 0px) + 8px);
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+}
+
+.album-view-page .album-header {
+    text-align: center;
+    margin-bottom: 0;
+    width: 100%;
+    max-width: 800px;
+    position: relative;
+    height: 0;
+}
+
+.album-view-header-overlay {
+    position: absolute;
+    top: clamp(0.5em, 2vh, 1.5em);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    pointer-events: none;
+    width: 100%;
+    max-width: min(90vw, 800px);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(0.2em, 1vh, 0.5em);
+}
+
+.album-view-title {
+    font-size: clamp(1.25rem, 4vw, 1.75rem);
+    font-weight: 700;
+    color: var(--primary-text-color);
+    margin: 0;
+    padding: 0;
+    line-height: 1.2;
+}
+
+.album-view-location {
+    font-size: clamp(0.75rem, 2.5vw, 0.9rem);
+    color: var(--secondary-text-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(0.3em, 1vw, 0.5em);
+    margin: 0;
+    padding: 0;
+    line-height: 1.3;
+}
+
+.album-view-location .location-icon {
+    font-size: 0.9em;
+    flex-shrink: 0;
+    display: inline-block;
+    filter: grayscale(100%) opacity(0.6);
+    min-width: 1em;
+    width: 1em;
+    height: 1em;
+}
+
+.slideshow-container {
+    position: relative;
+    width: 100%;
+    max-width: min(90vw, 900px);
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    padding-top: clamp(4em, 12vh, 6em);
+}
+
+.slideshow-image-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    max-width: min(90vw, 100%);
+    max-height: min(90vh, 100%);
+    position: relative;
+    perspective: 1000px;
+}
+
+.slideshow-image {
+    position: absolute;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: clamp(8px, 1.5vw, 12px);
+    box-shadow: var(--shadow-lg);
+    user-select: none;
+    -webkit-user-select: none;
+    opacity: 1;
+    transform: scale(1) rotateY(0deg);
+}
+
+.fade-out-rotate {
+    animation: fadeOutRotate 1s ease forwards;
+}
+
+.fade-in-rotate {
+    animation: fadeInRotate 1s ease forwards;
+}
+
+@keyframes fadeOutRotate {
+    0% {
+        opacity: 1;
+        transform: scale(1) rotateY(0deg);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.85) rotateY(-15deg);
+    }
+}
+
+@keyframes fadeInRotate {
+    0% {
+        opacity: 0;
+        transform: scale(0.85) rotateY(15deg);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotateY(0deg);
+    }
+}
+
+.slideshow-counter {
+    margin-top: clamp(12px, 3vh, 20px);
+    font-size: clamp(0.875rem, 2.5vw, 1rem);
+    color: var(--secondary-text-color);
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .album-view-container {
+        padding: 16px;
+        padding-top: max(60px, env(safe-area-inset-top, 60px) + 60px);
+        padding-bottom: max(80px, calc(env(safe-area-inset-bottom, 0px) + 80px));
+    }
+    
+    .slideshow-container {
+        padding-top: 75px;
+    }
+    
+    .album-view-title {
+        font-size: 1.5rem;
+    }
+    
+    .album-view-location {
+        font-size: 0.9rem;
+    }
+    
+    .slideshow-nav-btn {
+        width: 48px;
+        height: 48px;
+        font-size: 1.75rem;
+    }
+    
+    .slideshow-prev {
+        left: 12px;
+    }
+    
+    .slideshow-next {
+        right: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .album-view-container {
+        padding: max(8px, env(safe-area-inset-top, 0px) + 8px) max(8px, env(safe-area-inset-left, 0px) + 8px) max(8px, calc(env(safe-area-inset-bottom, 0px) + 8px)) max(8px, env(safe-area-inset-right, 0px) + 8px);
     }
 }
 
