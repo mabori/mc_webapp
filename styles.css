@@ -19,9 +19,7 @@
     --border-light: #E9ECEF;
     
     --success-color: #28A745;
-    --warning-color: #FFC107;
     --error-color: #DC3545;
-    --info-color: #17A2B8;
     
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
     --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -42,13 +40,6 @@ body {
     line-height: 1.6;
     min-height: 100vh;
     overflow: hidden;
-}
-
-.container {
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
 }
 
 .main-content {
@@ -235,9 +226,7 @@ body {
     color: var(--primary-text-color);
 }
 
-/* Buttons im Header-Bereich */
-/* Gemeinsame Styles für Header-Buttons */
-.album-view-header-button {
+.header-button {
     position: relative;
     width: clamp(40px, 5vw, 48px);
     height: clamp(40px, 5vw, 48px);
@@ -267,16 +256,15 @@ body {
     grid-row: 1;
 }
 
-/* Positionierung: Erster Button links, letzter Button rechts */
-.album-view-header-section .album-view-header-button:first-child {
+.album-view-header-section .header-button:first-child {
     grid-column: 1;
 }
 
-.album-view-header-section .album-view-header-button:last-child {
+.album-view-header-section .header-button:last-child {
     grid-column: 3;
 }
 
-.album-view-header-button:hover {
+.header-button:hover {
     background-color: rgba(0, 0, 0, 0.7);
     transform: scale(1.1);
     color: var(--text-light);
@@ -533,18 +521,8 @@ body {
     white-space: nowrap;
 }
 
-@media (max-width: 768px) {
-    .fab-button {
-        bottom: max(24px, calc(env(safe-area-inset-bottom, 0px) + 24px));
-        right: max(24px, calc(env(safe-area-inset-right, 0px) + 24px));
-    }
-}
-
-@media (max-width: 480px) {
-    .fab-button {
-        bottom: max(24px, calc(env(safe-area-inset-bottom, 0px) + 24px));
-        right: max(24px, calc(env(safe-area-inset-right, 0px) + 24px));
-    }
+.fab-button {
+    text-decoration: none;
 }
 
 .fab-button.fab-clicked {
@@ -552,8 +530,11 @@ body {
     background-color: var(--primary-hover);
 }
 
-.fab-button {
-    text-decoration: none;
+@media (max-width: 768px) {
+    .fab-button {
+        bottom: max(24px, calc(env(safe-area-inset-bottom, 0px) + 24px));
+        right: max(24px, calc(env(safe-area-inset-right, 0px) + 24px));
+    }
 }
 
 /* ===== KAMERA-SEITE ===== */
@@ -688,33 +669,29 @@ body {
     background-color: var(--text-light);
 }
 
-.back-button {
+.camera-page .header-button {
     position: absolute;
+    z-index: 100;
+}
+
+.camera-page .header-button#backButton {
     top: max(20px, env(safe-area-inset-top, 20px) + 20px);
     left: max(20px, env(safe-area-inset-left, 20px) + 20px);
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background-color: rgba(0, 0, 0, 0.5);
-    color: var(--text-light);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    font-size: 1.5rem;
-    z-index: 100;
-    transition: all 0.2s ease;
-    backdrop-filter: blur(10px);
 }
 
-.back-button:hover {
-    background-color: rgba(0, 0, 0, 0.7);
-    transform: scale(1.1);
+.camera-page .header-button#switchCameraBtn {
+    bottom: max(50px, calc(env(safe-area-inset-bottom, 0px) + 50px));
+    left: 24px;
 }
 
-.back-icon {
-    line-height: 1;
-    font-weight: 300;
+.camera-page .header-button#confirmBtn {
+    top: max(20px, env(safe-area-inset-top, 20px) + 20px);
+    right: max(20px, env(safe-area-inset-right, 20px) + 20px);
+    background-color: var(--primary-color);
+}
+
+.camera-page .header-button#confirmBtn:hover {
+    background-color: var(--primary-hover);
 }
 
 .review-cancel-btn {
@@ -749,76 +726,7 @@ body {
     transform: scale(0.95);
 }
 
-.confirm-button {
-    position: absolute;
-    top: max(20px, env(safe-area-inset-top, 20px) + 20px);
-    right: max(20px, env(safe-area-inset-right, 20px) + 20px);
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background-color: var(--primary-color);
-    color: var(--text-light);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    font-size: 1.5rem;
-    z-index: 100;
-    transition: all 0.2s ease;
-    cursor: pointer;
-    backdrop-filter: blur(10px);
-    box-shadow: var(--shadow-md);
-}
 
-.confirm-button:hover {
-    background-color: var(--primary-hover);
-    transform: scale(1.1);
-    box-shadow: var(--shadow-lg);
-}
-
-.confirm-button:active {
-    transform: scale(0.95);
-}
-
-.confirm-icon {
-    line-height: 1;
-    font-weight: 600;
-}
-
-.camera-switch-btn {
-    position: absolute;
-    bottom: max(50px, calc(env(safe-area-inset-bottom, 0px) + 50px));
-    left: 24px;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background-color: rgba(0, 0, 0, 0.5);
-    color: var(--text-light);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    font-size: 1.5rem;
-    z-index: 100;
-    transition: all 0.2s ease;
-    cursor: pointer;
-    backdrop-filter: blur(10px);
-    box-shadow: var(--shadow-md);
-}
-
-.camera-switch-btn:hover {
-    background-color: rgba(0, 0, 0, 0.7);
-    transform: scale(1.1);
-}
-
-.camera-switch-btn:active {
-    transform: scale(0.95);
-}
-
-.switch-icon {
-    line-height: 1;
-    font-weight: 600;
-}
 
 .photo-stack-container {
     position: fixed;
@@ -942,12 +850,9 @@ body {
         padding-bottom: max(40px, calc(env(safe-area-inset-bottom, 0px) + 40px));
     }
     
-    .camera-switch-btn {
+    .camera-page .header-button#switchCameraBtn {
         bottom: max(40px, calc(env(safe-area-inset-bottom, 0px) + 40px));
         left: 16px;
-        width: 44px;
-        height: 44px;
-        font-size: 1.25rem;
     }
 }
 
@@ -1466,7 +1371,6 @@ body {
     color: var(--secondary-text-color);
 }
 
-/* Album name input on review page - single line with ellipsis */
 .review-page #albumName {
     white-space: nowrap;
     overflow: hidden;
@@ -1616,7 +1520,7 @@ body {
     transform: translateY(0);
 }
 
-/* ===== BEREchtigungs-SEITE ===== */
+/* ===== PERMISSIONS-SEITE ===== */
 .permissions-container {
     display: flex;
     align-items: center;
@@ -1952,7 +1856,6 @@ body {
     overflow: hidden;
 }
 
-/* Header-Bereich für Buttons und Text */
 .album-view-header-section {
     grid-row: 1;
     display: grid;
@@ -2038,7 +1941,6 @@ body {
     height: 1em;
 }
 
-/* Content-Bereich: Bilder */
 .slideshow-container {
     grid-row: 2;
     position: relative;
@@ -2116,7 +2018,6 @@ body {
     }
 }
 
-/* Footer-Bereich: Counter */
 .slideshow-counter {
     grid-row: 3;
     display: flex;
@@ -2131,7 +2032,6 @@ body {
     min-height: clamp(40px, 5vh, 60px);
 }
 
-/* Responsive Anpassungen */
 @media (min-width: 1400px) {
     .album-view-title {
         font-size: clamp(1.5rem, 2vw + 0.5rem, 2rem);
@@ -2155,12 +2055,12 @@ body {
         min-height: clamp(60px, 8vh, 75px);
     }
     
-    .album-view-header-section .album-view-header-button:first-child {
+    .album-view-header-section .header-button:first-child {
         grid-column: 1;
         grid-row: 1;
     }
     
-    .album-view-header-section .album-view-header-button:last-child {
+    .album-view-header-section .header-button:last-child {
         grid-column: 3;
         grid-row: 1;
     }
