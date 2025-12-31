@@ -88,9 +88,10 @@ function loadAlbums() {
         previewImg.alt = album.name;
         previewImg.className = 'album-preview';
         
-        // Nach Bildladung Textgrößen anpassen
+        // Nach Bildladung Textgrößen anpassen und Container-Höhe aktualisieren
         previewImg.addEventListener('load', () => {
             adjustAlbumTextSizes();
+            updateAlbumsContainerHeight();
         });
         
         const albumInfo = document.createElement('div');
@@ -141,6 +142,9 @@ function loadAlbums() {
         });
     });
     
+    // Container-Höhe berechnen und setzen
+    updateAlbumsContainerHeight();
+    
     // Grid-Layout optimieren nach dem Laden
     setTimeout(() => {
         optimizeAlbumGrid();
@@ -149,6 +153,36 @@ function loadAlbums() {
             adjustAlbumTextSizes();
         }, 100);
     }, 0);
+}
+
+// Container-Höhe dynamisch berechnen für korrektes Scrollen
+function updateAlbumsContainerHeight() {
+    const albumsContainer = document.getElementById('albumsContainer');
+    const mainHeading = document.getElementById('mainHeading');
+    const mainContent = document.querySelector('.main-content');
+    
+    if (!albumsContainer || !mainContent || albumsContainer.style.display === 'none') {
+        return;
+    }
+    
+    // Berechne verfügbare Höhe
+    const viewportHeight = window.innerHeight;
+    const mainContentPaddingTop = parseFloat(getComputedStyle(mainContent).paddingTop) || 24;
+    const mainContentPaddingBottom = parseFloat(getComputedStyle(mainContent).paddingBottom) || 100;
+    const albumsContainerMarginTop = parseFloat(getComputedStyle(albumsContainer).marginTop) || 24;
+    
+    // Höhe des Headings berücksichtigen (wenn sichtbar)
+    let headingHeight = 0;
+    if (mainHeading && mainHeading.style.display !== 'none') {
+        const headingRect = mainHeading.getBoundingClientRect();
+        headingHeight = headingRect.height;
+    }
+    
+    // Verfügbare Höhe berechnen
+    const availableHeight = viewportHeight - mainContentPaddingTop - mainContentPaddingBottom - albumsContainerMarginTop - headingHeight;
+    
+    // Setze die maximale Höhe des Containers
+    albumsContainer.style.maxHeight = `${Math.max(200, availableHeight)}px`;
 }
 
 // Schriftgrößen dynamisch an Kartengröße anpassen
@@ -375,11 +409,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Onboarding abgeschlossen - Alben laden
     loadAlbums();
     
-    // Resize-Listener für Grid-Optimierung
+    // Resize-Listener für Grid-Optimierung und Höhen-Anpassung
     let resizeTimeout;
     window.addEventListener('resize', () => {
         clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(() => {
+            updateAlbumsContainerHeight();
             optimizeAlbumGrid();
             adjustAlbumTextSizes();
         }, 150);
