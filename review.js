@@ -645,8 +645,29 @@ function showCompleteScreen() {
         
         const albumModal = document.getElementById('albumModal');
         const albumNameInput = document.getElementById('albumName');
+        const albumLocationInput = document.getElementById('albumLocation');
+        
         if (albumModal) {
             albumModal.style.display = 'flex';
+            
+            // Stelle sicher, dass das Ort-Feld editierbar ist
+            if (albumLocationInput) {
+                albumLocationInput.disabled = false;
+                albumLocationInput.readOnly = false;
+            }
+            
+            // Ort-Feld automatisch mit aktueller Stadt ausfüllen
+            getCurrentCity().then(city => {
+                if (city && albumLocationInput) {
+                    albumLocationInput.value = city;
+                    // Stelle sicher, dass das Feld weiterhin editierbar bleibt
+                    albumLocationInput.disabled = false;
+                    albumLocationInput.readOnly = false;
+                }
+            }).catch(() => {
+                // Fehler ignorieren - Feld bleibt leer und editierbar
+            });
+            
             // Kurze Verzögerung für besseres UX
             setTimeout(() => {
                 if (albumNameInput) {
@@ -654,6 +675,68 @@ function showCompleteScreen() {
                 }
             }, 100);
         }
+    }
+}
+
+// Aktuelle Stadt basierend auf Standort abrufen
+async function getCurrentCity() {
+    if (!navigator.geolocation) {
+        return null;
+    }
+    
+    // Prüfe ob Location-Permission bereits erteilt wurde
+    const locationPermission = localStorage.getItem('locationPermission');
+    if (locationPermission === 'denied' || locationPermission === 'not_supported') {
+        // Permission wurde verweigert oder nicht unterstützt - keine erneute Anfrage
+        return null;
+    }
+    
+    try {
+        // Aktuelle Position abrufen (keine erneute Anfrage, da Permission bereits erteilt wurde)
+        const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(
+                resolve,
+                reject,
+                {
+                    timeout: 5000,
+                    enableHighAccuracy: false,
+                    maximumAge: 60000 // Cache für 1 Minute
+                }
+            );
+        });
+        
+        const { latitude, longitude } = position.coords;
+        
+        // Reverse Geocoding mit OpenStreetMap Nominatim API
+        const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
+            {
+                headers: {
+                    'User-Agent': 'Memories Web App'
+                }
+            }
+        );
+        
+        if (!response.ok) {
+            return null;
+        }
+        
+        const data = await response.json();
+        
+        // Stadt aus verschiedenen möglichen Feldern extrahieren
+        const address = data.address || {};
+        const city = address.city || 
+                     address.town || 
+                     address.village || 
+                     address.municipality || 
+                     address.county ||
+                     address.state_district ||
+                     null;
+        
+        return city;
+    } catch (error) {
+        // Fehler beim Abrufen der Position oder Geocoding
+        return null;
     }
 }
 

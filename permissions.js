@@ -69,34 +69,80 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Stream sofort schließen, wir brauchen nur die Berechtigung
                 stream.getTracks().forEach(track => track.stop());
+                
+                // Kamera-Berechtigung wurde erteilt - speichern
+                localStorage.setItem('cameraPermission', 'granted');
             } catch (error) {
-                // Kamera-Berechtigung wurde verweigert - trotzdem weitermachen
+                // Kamera-Berechtigung wurde verweigert - speichern
+                if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                    localStorage.setItem('cameraPermission', 'denied');
+                } else {
+                    localStorage.setItem('cameraPermission', 'denied');
+                }
             }
             
             // ===== 3. LOCATION-BERECHTIGUNG =====
             if (navigator.geolocation) {
                 try {
-                    // Location-Berechtigung anfordern durch getCurrentPosition
-                    await new Promise((resolve, reject) => {
-                        navigator.geolocation.getCurrentPosition(
-                            (position) => {
+                    // Prüfe zuerst den aktuellen Permission-Status mit der Permissions API
+                    let shouldRequest = true;
+                    if (navigator.permissions && navigator.permissions.query) {
+                        try {
+                            const result = await navigator.permissions.query({ name: 'geolocation' });
+                            if (result.state === 'granted') {
                                 localStorage.setItem('locationPermission', 'granted');
-                                resolve();
-                            },
-                            (error) => {
-                                if (error.code === error.PERMISSION_DENIED) {
-                                    localStorage.setItem('locationPermission', 'denied');
-                                } else {
-                                    localStorage.setItem('locationPermission', 'denied');
-                                }
-                                resolve(); // Trotzdem weitermachen
-                            },
-                            {
-                                timeout: 5000,
-                                enableHighAccuracy: false
+                                shouldRequest = false;
+                            } else if (result.state === 'denied') {
+                                // Permission wurde bereits verweigert - trotzdem versuchen, Dialog zu zeigen
+                                // (Browser könnte erlauben, dass User die Entscheidung ändert)
+                                shouldRequest = true;
+                            } else {
+                                // Permission ist 'prompt' - Dialog wird erscheinen
+                                shouldRequest = true;
                             }
-                        );
-                    });
+                        } catch (e) {
+                            // Permissions API nicht unterstützt oder Fehler - trotzdem versuchen
+                            shouldRequest = true;
+                        }
+                    }
+                    
+                    // Location-Berechtigung anfordern durch getCurrentPosition
+                    // Dies triggert den Browser-Dialog, wenn die Permission noch nicht entschieden wurde
+                    if (shouldRequest) {
+                        await new Promise((resolve) => {
+                            // Timeout für den Fall, dass keine Antwort kommt
+                            const timeoutId = setTimeout(() => {
+                                localStorage.setItem('locationPermission', 'denied');
+                                resolve();
+                            }, 5000);
+                            
+                            navigator.geolocation.getCurrentPosition(
+                                (position) => {
+                                    clearTimeout(timeoutId);
+                                    localStorage.setItem('locationPermission', 'granted');
+                                    resolve();
+                                },
+                                (error) => {
+                                    clearTimeout(timeoutId);
+                                    if (error.code === error.PERMISSION_DENIED) {
+                                        localStorage.setItem('locationPermission', 'denied');
+                                    } else if (error.code === error.TIMEOUT) {
+                                        localStorage.setItem('locationPermission', 'denied');
+                                    } else if (error.code === error.POSITION_UNAVAILABLE) {
+                                        localStorage.setItem('locationPermission', 'denied');
+                                    } else {
+                                        localStorage.setItem('locationPermission', 'denied');
+                                    }
+                                    resolve(); // Trotzdem weitermachen
+                                },
+                                {
+                                    timeout: 3000,
+                                    enableHighAccuracy: false,
+                                    maximumAge: 0 // Keine gecachte Position verwenden - zwingt neue Anfrage
+                                }
+                            );
+                        });
+                    }
                 } catch (error) {
                     localStorage.setItem('locationPermission', 'denied');
                 }

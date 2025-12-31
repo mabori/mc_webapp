@@ -18,8 +18,16 @@ async function initCamera(facingMode = 'environment') {
             stream.getTracks().forEach(track => track.stop());
         }
         
-        // Permission was already requested during onboarding
-        // Browser remembers the permission, so getUserMedia will not ask again here
+        // Prüfe ob Kamera-Permission bereits erteilt wurde
+        const cameraPermission = localStorage.getItem('cameraPermission');
+        if (cameraPermission === 'denied') {
+            // Permission wurde verweigert - zeige Fehlermeldung
+            alert('Camera permission was denied. Please allow access in your browser settings.');
+            return;
+        }
+        
+        // Permission wurde bereits während des Onboardings angefragt
+        // Browser erinnert sich an die Permission, daher wird kein Dialog mehr angezeigt
         stream = await navigator.mediaDevices.getUserMedia({
             video: {
                 facingMode: facingMode,
@@ -27,6 +35,11 @@ async function initCamera(facingMode = 'environment') {
                 height: { ideal: 1920 }
             }
         });
+        
+        // Permission erfolgreich - Status aktualisieren (falls noch nicht gesetzt)
+        if (cameraPermission !== 'granted') {
+            localStorage.setItem('cameraPermission', 'granted');
+        }
         
         currentFacingMode = facingMode;
         video.srcObject = stream;
