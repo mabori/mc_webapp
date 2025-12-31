@@ -114,7 +114,7 @@ function loadAlbums() {
         
         const albumLocation = document.createElement('p');
         albumLocation.className = 'album-location';
-        albumLocation.innerHTML = '<span class="location-icon">📍</span>' + (album.ort || 'No location specified');
+        albumLocation.innerHTML = '<span class="location-icon">📍</span><span class="location-text">' + (album.ort || 'No location specified') + '</span>';
         
         albumInfo.appendChild(albumHeader);
         albumInfo.appendChild(albumLocation);

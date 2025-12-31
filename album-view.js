@@ -37,7 +37,7 @@ function loadAlbum() {
     
     // Album-Informationen anzeigen
     albumTitle.textContent = currentAlbum.name;
-    albumLocation.innerHTML = '<span class="location-icon">📍</span>' + (currentAlbum.ort || 'No location specified');
+    albumLocation.innerHTML = '<span class="location-icon">📍</span><span class="location-text">' + (currentAlbum.ort || 'No location specified') + '</span>';
     
     // Fotos laden
     photos = currentAlbum.photos || [];

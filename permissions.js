@@ -73,7 +73,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Kamera-Berechtigung wurde verweigert - trotzdem weitermachen
             }
             
-            // ===== 3. ONBOARDING ABSCHLIESSEN =====
+            // ===== 3. LOCATION-BERECHTIGUNG =====
+            if (navigator.geolocation) {
+                try {
+                    // Location-Berechtigung anfordern durch getCurrentPosition
+                    await new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(
+                            (position) => {
+                                localStorage.setItem('locationPermission', 'granted');
+                                resolve();
+                            },
+                            (error) => {
+                                if (error.code === error.PERMISSION_DENIED) {
+                                    localStorage.setItem('locationPermission', 'denied');
+                                } else {
+                                    localStorage.setItem('locationPermission', 'denied');
+                                }
+                                resolve(); // Trotzdem weitermachen
+                            },
+                            {
+                                timeout: 5000,
+                                enableHighAccuracy: false
+                            }
+                        );
+                    });
+                } catch (error) {
+                    localStorage.setItem('locationPermission', 'denied');
+                }
+            } else {
+                localStorage.setItem('locationPermission', 'not_supported');
+            }
+            
+            // ===== 4. ONBOARDING ABSCHLIESSEN =====
             localStorage.setItem('onboardingCompleted', 'true');
             
             // Kurze Verzögerung bevor weitergeleitet wird
