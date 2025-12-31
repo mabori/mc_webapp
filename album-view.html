@@ -9,27 +9,26 @@
 </head>
 <body class="album-view-page">
     <div class="album-view-container">
-        <a href="index.html" class="back-button" aria-label="Back to home">
-            <span class="back-icon">←</span>
-        </a>
-        
-        <button class="album-options-btn" id="albumOptionsBtn" aria-label="Album options">⋮</button>
-        
-        <div class="album-header">
-            <!-- Leer, nur für Layout-Kompatibilität -->
-        </div>
-        
-        <div class="slideshow-container">
+        <!-- Header-Bereich: Buttons und Text -->
+        <div class="album-view-header-section">
+            <button class="album-view-header-button" id="backButton" aria-label="Back to home">←</button>
+            
             <div class="album-view-header-overlay">
                 <h1 class="album-view-title" id="albumTitle">Album</h1>
                 <p class="album-view-location" id="albumLocation"></p>
             </div>
+            
+            <button class="album-view-header-button" id="albumOptionsBtn" aria-label="Album options">⋮</button>
+        </div>
+        
+        <!-- Content-Bereich: Bilder -->
+        <div class="slideshow-container">
             <div class="slideshow-image-wrapper">
                 <img id="currentPhoto" class="slideshow-image" src="" alt="Photo">
             </div>
-            
         </div>
         
+        <!-- Footer-Bereich: Counter -->
         <div class="slideshow-counter">
             <span id="photoCounter">1 / 1</span>
         </div>

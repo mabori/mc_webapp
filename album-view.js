@@ -187,6 +187,7 @@ function deleteAlbum() {
 
 // Event Listeners für Album Options Modal
 document.addEventListener('DOMContentLoaded', () => {
+    const backButton = document.getElementById('backButton');
     const modal = document.getElementById('albumOptionsModal');
     const form = document.getElementById('albumOptionsForm');
     const closeBtn = document.getElementById('closeOptionsBtn');
@@ -196,6 +197,13 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (!modal || !form || !closeBtn || !deleteBtn || !nameInput || !optionsBtn) {
         return;
+    }
+    
+    // Zurück-Button Event Listener
+    if (backButton) {
+        backButton.addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
     }
     
     // Options Button öffnet Modal

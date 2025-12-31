@@ -156,9 +156,10 @@ body {
     align-items: flex-start;
     background-color: var(--bg-primary);
     position: relative;
-    overflow: visible;
+    overflow: hidden;
     box-sizing: border-box;
     gap: 0;
+    width: 100%;
 }
 
 .album-header {
@@ -177,7 +178,7 @@ body {
     box-sizing: border-box;
     text-align: left;
     line-height: 0;
-    overflow: visible;
+    overflow: hidden;
 }
 
 .album-name {
@@ -188,22 +189,20 @@ body {
     margin-bottom: 0.15em;
     padding: 0;
     overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
-    white-space: normal;
+    white-space: nowrap;
     flex: 1 1 auto;
     min-width: 0;
     letter-spacing: -0.01em;
     line-height: 1.05;
-    word-wrap: break-word;
-    hyphens: auto;
+    word-wrap: normal;
+    word-break: normal;
+    hyphens: none;
     box-sizing: border-box;
     text-overflow: ellipsis;
     text-align: left;
     align-self: flex-start;
-    height: fit-content;
+    width: 100%;
+    max-width: 100%;
 }
 
 .album-options-btn {
@@ -235,31 +234,48 @@ body {
     color: var(--primary-text-color);
 }
 
-.album-view-page .album-options-btn {
-    position: absolute;
-    top: max(20px, env(safe-area-inset-top, 20px) + 20px);
-    right: max(20px, env(safe-area-inset-right, 20px) + 20px);
-    width: 48px;
-    height: 48px;
+/* Buttons im Header-Bereich */
+/* Gemeinsame Styles für Header-Buttons */
+.album-view-header-button {
+    position: relative;
+    width: clamp(40px, 5vw, 48px);
+    height: clamp(40px, 5vw, 48px);
+    min-width: clamp(40px, 5vw, 48px);
+    min-height: clamp(40px, 5vw, 48px);
+    max-width: clamp(40px, 5vw, 48px);
+    max-height: clamp(40px, 5vw, 48px);
     border-radius: 50%;
     background-color: rgba(0, 0, 0, 0.5);
     color: var(--text-light);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
-    z-index: 100;
+    font-size: clamp(1.25rem, 3vw, 1.5rem);
+    line-height: 1;
     transition: all 0.2s ease;
     backdrop-filter: blur(10px);
     padding: 0;
     margin: 0;
-    min-width: 48px;
-    min-height: 48px;
     border: none;
     cursor: pointer;
+    flex-shrink: 0;
+    z-index: 10;
+    align-self: center;
+    justify-self: start;
+    box-sizing: border-box;
+    grid-row: 1;
 }
 
-.album-view-page .album-options-btn:hover {
+/* Positionierung: Erster Button links, letzter Button rechts */
+.album-view-header-section .album-view-header-button:first-child {
+    grid-column: 1;
+}
+
+.album-view-header-section .album-view-header-button:last-child {
+    grid-column: 3;
+}
+
+.album-view-header-button:hover {
     background-color: rgba(0, 0, 0, 0.7);
     transform: scale(1.1);
     color: var(--text-light);
@@ -1444,6 +1460,25 @@ body {
     color: var(--secondary-text-color);
 }
 
+/* Album name input on review page - single line with ellipsis */
+.review-page #albumName {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: normal;
+    word-wrap: normal;
+    hyphens: none;
+}
+
+.review-page #albumName:focus {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: normal;
+    word-wrap: normal;
+    hyphens: none;
+}
+
 .modal-buttons {
     display: flex;
     gap: 12px;
@@ -1891,57 +1926,80 @@ body {
 .album-view-page {
     overflow: hidden;
     background-color: var(--bg-primary);
+    min-width: 300px;
+    min-height: 450px;
 }
 
 .album-view-container {
     width: 100vw;
     height: 100vh;
     height: 100dvh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: max(8px, env(safe-area-inset-top, 0px) + 8px) max(8px, env(safe-area-inset-left, 0px) + 8px) max(8px, calc(env(safe-area-inset-bottom, 0px) + 8px)) max(8px, env(safe-area-inset-right, 0px) + 8px);
+    min-width: 300px;
+    min-height: 450px;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding: 0;
     box-sizing: border-box;
     position: relative;
     overflow: hidden;
 }
 
-.album-view-page .album-header {
-    text-align: center;
-    margin-bottom: 0;
-    width: 100%;
-    max-width: 800px;
+/* Header-Bereich für Buttons und Text */
+.album-view-header-section {
+    grid-row: 1;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-rows: 1fr;
+    align-items: center;
+    justify-items: stretch;
+    padding: max(12px, env(safe-area-inset-top, 12px) + 12px) max(16px, env(safe-area-inset-right, 16px) + 16px) max(12px, env(safe-area-inset-bottom, 12px) + 12px) max(16px, env(safe-area-inset-left, 16px) + 16px);
+    gap: clamp(8px, 2vw, 16px);
+    min-height: clamp(60px, 8vh, 80px);
+    box-sizing: border-box;
     position: relative;
-    height: 0;
+    z-index: 10;
+    background-color: var(--bg-primary);
+}
+
+.album-view-page .album-header {
+    display: none;
 }
 
 .album-view-header-overlay {
-    position: absolute;
-    top: clamp(0.5em, 2vh, 1.5em);
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 5;
-    pointer-events: none;
-    width: 100%;
-    max-width: min(90vw, 800px);
-    text-align: center;
+    grid-column: 2;
+    grid-row: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: clamp(0.2em, 1vh, 0.5em);
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 0 clamp(8px, 2vw, 16px);
+    overflow: hidden;
+    align-self: center;
 }
 
 .album-view-title {
-    font-size: clamp(1.25rem, 4vw, 1.75rem);
+    font-size: clamp(1rem, 2.5vw + 0.5rem, 1.75rem);
     font-weight: 700;
     color: var(--primary-text-color);
     margin: 0;
     padding: 0;
     line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    width: 100%;
+    text-align: center;
 }
 
 .album-view-location {
-    font-size: clamp(0.75rem, 2.5vw, 0.9rem);
+    font-size: clamp(0.75rem, 1.5vw + 0.4rem, 0.9rem);
     color: var(--secondary-text-color);
     display: flex;
     align-items: center;
@@ -1950,6 +2008,11 @@ body {
     margin: 0;
     padding: 0;
     line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    width: 100%;
 }
 
 .album-view-location .location-icon {
@@ -1962,35 +2025,42 @@ body {
     height: 1em;
 }
 
+/* Content-Bereich: Bilder */
 .slideshow-container {
+    grid-row: 2;
     position: relative;
     width: 100%;
-    max-width: min(90vw, 900px);
-    flex: 1;
+    max-width: min(95vw, 1000px);
+    margin: 0 auto;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: 0;
-    padding-top: clamp(4em, 12vh, 6em);
+    padding: clamp(16px, 3vh, 32px) clamp(16px, 4vw, 32px);
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .slideshow-image-wrapper {
     width: 100%;
     height: 100%;
+    flex: 1;
+    min-height: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    max-width: min(90vw, 100%);
-    max-height: min(90vh, 100%);
     position: relative;
     perspective: 1000px;
+    box-sizing: border-box;
 }
 
 .slideshow-image {
-    position: absolute;
     max-width: 100%;
     max-height: 100%;
+    min-width: clamp(200px, 30vw, 400px);
+    min-height: clamp(200px, 30vh, 400px);
     width: auto;
     height: auto;
     object-fit: contain;
@@ -2000,6 +2070,7 @@ body {
     -webkit-user-select: none;
     opacity: 1;
     transform: scale(1) rotateY(0deg);
+    display: block;
 }
 
 .fade-out-rotate {
@@ -2032,50 +2103,78 @@ body {
     }
 }
 
+/* Footer-Bereich: Counter */
 .slideshow-counter {
-    margin-top: clamp(12px, 3vh, 20px);
-    font-size: clamp(0.875rem, 2.5vw, 1rem);
+    grid-row: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(12px, 2vh, 20px) clamp(16px, 4vw, 32px);
+    padding-bottom: max(clamp(12px, 2vh, 20px), calc(env(safe-area-inset-bottom, 0px) + clamp(12px, 2vh, 20px)));
+    font-size: clamp(0.875rem, 2vw, 1rem);
     color: var(--secondary-text-color);
     font-weight: 500;
+    box-sizing: border-box;
+    min-height: clamp(40px, 5vh, 60px);
 }
 
-@media (max-width: 768px) {
-    .album-view-container {
-        padding: 16px;
-        padding-top: max(60px, env(safe-area-inset-top, 60px) + 60px);
-        padding-bottom: max(80px, calc(env(safe-area-inset-bottom, 0px) + 80px));
-    }
-    
-    .slideshow-container {
-        padding-top: 75px;
-    }
-    
+/* Responsive Anpassungen */
+@media (min-width: 1400px) {
     .album-view-title {
-        font-size: 1.5rem;
+        font-size: clamp(1.5rem, 2vw + 0.5rem, 2rem);
     }
     
     .album-view-location {
-        font-size: 0.9rem;
+        font-size: clamp(0.85rem, 1.2vw + 0.4rem, 1rem);
     }
     
-    .slideshow-nav-btn {
-        width: 48px;
-        height: 48px;
-        font-size: 1.75rem;
-    }
-    
-    .slideshow-prev {
-        left: 12px;
-    }
-    
-    .slideshow-next {
-        right: 12px;
+    .album-view-header-section {
+        min-height: clamp(80px, 10vh, 100px);
     }
 }
 
-@media (max-width: 480px) {
-    .album-view-container {
-        padding: max(8px, env(safe-area-inset-top, 0px) + 8px) max(8px, env(safe-area-inset-left, 0px) + 8px) max(8px, calc(env(safe-area-inset-bottom, 0px) + 8px)) max(8px, env(safe-area-inset-right, 0px) + 8px);
+@media (max-width: 768px) {
+    .album-view-header-section {
+        grid-template-columns: auto 1fr auto;
+        grid-template-rows: 1fr;
+        padding: max(12px, env(safe-area-inset-top, 12px) + 12px) max(16px, env(safe-area-inset-left, 16px) + 16px) max(12px, env(safe-area-inset-bottom, 12px) + 12px) max(16px, env(safe-area-inset-right, 16px) + 16px);
+        gap: clamp(6px, 1.5vw, 12px);
+        min-height: clamp(60px, 8vh, 75px);
+    }
+    
+    .album-view-header-section .album-view-header-button:first-child {
+        grid-column: 1;
+        grid-row: 1;
+    }
+    
+    .album-view-header-section .album-view-header-button:last-child {
+        grid-column: 3;
+        grid-row: 1;
+    }
+    
+    .album-view-header-overlay {
+        grid-column: 2;
+        grid-row: 1;
+        width: 100%;
+        padding: 0 clamp(4px, 1vw, 8px);
+        align-self: center;
+    }
+    
+    .album-view-title {
+        font-size: clamp(1rem, 3vw + 0.5rem, 1.5rem);
+    }
+    
+    .album-view-location {
+        font-size: clamp(0.75rem, 2vw + 0.3rem, 0.9rem);
+    }
+    
+    .slideshow-container {
+        padding: clamp(12px, 2vh, 24px) clamp(12px, 3vw, 24px);
+    }
+    
+    .slideshow-counter {
+        padding: clamp(10px, 1.5vh, 16px) clamp(12px, 3vw, 24px);
+        min-height: clamp(35px, 4vh, 50px);
     }
 }
 
